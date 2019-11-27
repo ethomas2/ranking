@@ -12,9 +12,9 @@ const ballot1 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
 const ballot2 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
 const ballot3 = {'candidate 1': 2, 'candidate 2': 1, 'candidate 3': 3};
 const defaultState: State = [
-  ['person 1', ballot1],
-  ['person 2', ballot2],
-  ['person 3', ballot3],
+  ['voter 1', ballot1],
+  ['voter 2', ballot2],
+  ['voter 3', ballot3],
 ];
 
 const addVoter = (
@@ -104,17 +104,46 @@ const App: React.FC = () => {
   const [electionResult, setElectionResult] = useState<CandidateName[] | null>(
     null,
   );
+  const [voterUnderEdit, setVoterUnderEdit] = useState<VoterName | null>(null);
 
   // TODO: make sure all people have all the same candidate keys
   // TODO: this will break if we have 0 ballots
   const candidates = Object.keys(electionState[0][1]);
 
+  const setCell = (
+    candidate: CandidateName,
+    voter: VoterName,
+    value: string,
+  ) => {
+    const newState = [...electionState];
+    // TODO: ! is bad
+    const [, ballot] = newState.find(
+      ([voterName, ballot]) => voterName === voter,
+    )!;
+    ballot[candidate] = Number(value);
+    setState(newState);
+  };
+
+  // TODO: move setcell, addcandidate, addvoter to dispatch actions
+
   const tableBodyContent = candidates.map(candidate => (
     <tr key={`candidate-row-${candidate}`}>
       <td>{candidate}</td>
-      {electionState.map(([person, ballot]) => (
-        <td key={`candidate-${candidate}-person-${person}`}>
-          {ballot[candidate]}
+      {electionState.map(([voter, ballot]) => (
+        <td
+          onClick={e => setVoterUnderEdit(voter)}
+          key={`td-candidate-${candidate}-voter-${voter}`}>
+          {voterUnderEdit === voter ? (
+            <input
+              value={ballot[candidate]}
+              onChange={e => {
+                setCell(candidate, voter, e.target.value);
+              }}
+              onKeyDown={e => e.keyCode === 13 && setVoterUnderEdit(null)}
+            />
+          ) : (
+            ballot[candidate]
+          )}
         </td>
       ))}
     </tr>
@@ -123,8 +152,8 @@ const App: React.FC = () => {
   const tableHeaderContent = (
     <tr>
       <th />
-      {electionState.map(([person]) => (
-        <th key={`person-${person}`}>{person}</th>
+      {electionState.map(([voter]) => (
+        <th key={`voter-${voter}`}>{voter}</th>
       ))}
       <th>
         <input
@@ -137,35 +166,33 @@ const App: React.FC = () => {
   );
 
   return (
-    <html>
-      <body>
-        <table>
-          <thead>{tableHeaderContent}</thead>
-          <tbody>{tableBodyContent}</tbody>
-          <tfoot>
-            <tr>
-              <td>
-                <input
-                  value="Add candidate"
-                  type="button"
-                  onClick={() => addCandidate(electionState, setState)}
-                />
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-        <input
-          type="button"
-          value="Submit"
-          onClick={() => {
-            const ballots = electionState.map(([, ballot]) => ballot);
-            const electionResult = runElection(ballots);
-            setElectionResult(electionResult);
-          }}
-        />
-        {electionResult}
-      </body>
-    </html>
+    <div>
+      <table>
+        <thead>{tableHeaderContent}</thead>
+        <tbody>{tableBodyContent}</tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <input
+                value="Add candidate"
+                type="button"
+                onClick={() => addCandidate(electionState, setState)}
+              />
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <input
+        type="button"
+        value="Submit"
+        onClick={() => {
+          const ballots = electionState.map(([, ballot]) => ballot);
+          const electionResult = runElection(ballots);
+          setElectionResult(electionResult);
+        }}
+      />
+      {electionResult}
+    </div>
   );
 };
 
