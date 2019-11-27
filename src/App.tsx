@@ -1,62 +1,68 @@
 import React, {useState} from 'react';
 
-type PersonName = string;
-type Ranking = {
-  [book: string]: number;
+type VoterName = string;
+type CandidateName = string;
+type Ballot = {
+  [CandidateName: string]: number;
 };
-type State = [PersonName, Ranking][]; // TODO: make double array
+type VoterBallotPair = [VoterName, Ballot];
+type State = VoterBallotPair[];
 
-const ranking1 = {'book 1': 1, 'book 2': 2, 'book 3': 3};
-const ranking2 = {'book 1': 3, 'book 2': 2, 'book 3': 1};
-const ranking3 = {'book 1': 2, 'book 2': 1, 'book 3': 3};
+const ballot1 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
+const ballot2 = {'candidate 1': 3, 'candidate 2': 2, 'candidate 3': 1};
+const ballot3 = {'candidate 1': 2, 'candidate 2': 1, 'candidate 3': 3};
 const defaultState: State = [
-  ['person 1', ranking1],
-  ['person 2', ranking2],
-  ['person 3', ranking3],
+  ['person 1', ballot1],
+  ['person 2', ballot2],
+  ['person 3', ballot3],
 ];
 
-const addPerson = (
+const addVoter = (
   currentState: Readonly<State>,
-  newPersonName: string,
+  newVoterName: string,
 ): State => {
-  // TODO: this will error if no books exist
-  // TODO: only add if newPersonName does not exist in list of people
+  // TODO: this will error if no candidates exist
+  // TODO: only add if newVoterName does not exist in list of people
   // TODO: this looks like a job for useReducer
   // TODO: can we list comprehension this?
-  const books = Object.keys(currentState[0][1]);
-  let newRanking: Ranking = {};
+  const candidates = Object.keys(currentState[0][1]);
+  let newBallot: Ballot = {};
   let i = 1;
-  for (const book of books) {
-    newRanking[book] = i;
+  for (const candidate of candidates) {
+    newBallot[candidate] = i;
     i++;
   }
-  return [...currentState, [newPersonName, newRanking]];
+  return [...currentState, [newVoterName, newBallot]];
 };
 
-const addBook = (
+const addCandidate = (
   currentState: Readonly<State>,
   setState: (s: State) => void,
 ) => {
-  const nbooks = Object.keys(currentState[0][1]).length;
+  const ncandidates = Object.keys(currentState[0][1]).length;
   const newState = [...currentState];
-  const newBookName = `Book ${nbooks + 1}`;
-  for (const [, ranking] of newState) {
-    ranking[newBookName] = nbooks + 1;
+  const newBookName = `Book ${ncandidates + 1}`;
+  for (const [, ballot] of newState) {
+    ballot[newBookName] = ncandidates + 1;
   }
   setState(newState);
 };
 
+// const runElection = (ballots: readonly Ballot[]) => {
+//   const tallies: _Map<CandidateName, number>  = tally(ballots);
+// }
+
 const App: React.FC = () => {
-  const [peopleWithRankings, setState] = useState(defaultState);
+  const [electionState, setState] = useState(defaultState);
 
-  // TODO: make sure all people have all the same book keys
-  const books = Object.keys(ranking1);
+  // TODO: make sure all people have all the same candidate keys
+  const candidates = Object.keys(ballot1);
 
-  const tableBodyContent = books.map(book => (
-    <tr key={`book-row-${book}`}>
-      <td>{book}</td>
-      {peopleWithRankings.map(([person, ranking]) => (
-        <td key={`book-${book}-person-${person}`}>{ranking[book]}</td>
+  const tableBodyContent = candidates.map(candidate => (
+    <tr key={`candidate-row-${candidate}`}>
+      <td>{candidate}</td>
+      {electionState.map(([person, ballot]) => (
+        <td key={`candidate-${candidate}-person-${person}`}>{ballot[candidate]}</td>
       ))}
     </tr>
   ));
@@ -64,7 +70,7 @@ const App: React.FC = () => {
   const tableHeaderContent = (
     <tr>
       <th />
-      {peopleWithRankings.map(([person]) => (
+      {electionState.map(([person]) => (
         <th key={`person-${person}`}>{person}</th>
       ))}
       <th>
@@ -72,7 +78,7 @@ const App: React.FC = () => {
           value="Add person"
           type="button"
           onClick={() =>
-            setState(addPerson(peopleWithRankings, 'King Phillip'))
+            setState(addVoter(electionState, 'King Phillip'))
           }
         />
       </th>
@@ -87,9 +93,9 @@ const App: React.FC = () => {
         <tr>
           <td>
             <input
-              value="Add book"
+              value="Add candidate"
               type="button"
-              onClick={() => addBook(peopleWithRankings, setState)}
+              onClick={() => addCandidate(electionState, setState)}
             />
           </td>
         </tr>
