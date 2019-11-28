@@ -14,7 +14,7 @@ const defaultState: AppState = {
   ],
 
   electionResult: null,
-  voterUnderEdit: null,
+  editState: null,
 };
 
 const App: React.FC = () => {
@@ -22,7 +22,7 @@ const App: React.FC = () => {
     reducer,
     defaultState,
   );
-  const {voterBallotPairs, electionResult, voterUnderEdit} = state;
+  const {voterBallotPairs, electionResult, editState} = state;
 
   // TODO: make sure all people have all the same candidate keys
   // TODO: this will break if we have 0 ballots
@@ -35,22 +35,21 @@ const App: React.FC = () => {
       <td>{candidate}</td>
       {voterBallotPairs.map(([voter, ballot]) => (
         <td
-          onClick={e => dispatch({type: 'setVoterUnderEdit', voter})}
+          onClick={e => dispatch({type: 'editBallot', voter})}
           key={`td-candidate-${candidate}-voter-${voter}`}>
-          {voterUnderEdit === voter ? (
+          {editState && editState.type === 'editBallot' && editState.voter === voter ? (
             <input
-              value={ballot[candidate]}
+              value={editState.tempBallot[candidate]}
               onChange={e =>
                 dispatch({
-                  type: 'setCell',
+                  type: 'setTempBallot',
                   candidate,
-                  voter,
                   value: e.target.value,
                 })
               }
               onKeyDown={e =>
                 e.keyCode === 13 &&
-                dispatch({type: 'setVoterUnderEdit', voter: null})
+                dispatch({type: 'commitEditState'})
               }
             />
           ) : (

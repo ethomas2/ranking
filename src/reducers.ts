@@ -5,13 +5,19 @@ import {
   AppState,
   Action,
   VoterName,
+  EditState,
 } from './types';
+import _ from 'lodash';
 
 export const reducer = (state: AppState, action: Action): AppState => {
   const {voterBallotPairs} = state;
   switch (action.type) {
-    case 'setVoterUnderEdit':
-      return {...state, voterUnderEdit: action.voter};
+    case 'editBallot':
+      return {...state, editState: editBallot(state, action.voter)};
+    case 'setTempBallot':
+      return setTempBallot(state, action.candidate, action.value);
+    case 'commitEditState':
+      return commitEditState(state);
     case 'addVoter':
       return {
         ...state,
@@ -19,20 +25,65 @@ export const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'addCandidate':
       return {...state, voterBallotPairs: addCandidate(voterBallotPairs)};
-    case 'setCell':
-      return {
-        ...state,
-        voterBallotPairs: setCell(
-          voterBallotPairs,
-          action.candidate,
-          action.voter,
-          action.value,
-        ),
-      };
     case 'setElectionResult':
       return {...state, electionResult: action.electionResult};
   }
 };
+
+const editBallot = (state: AppState, voter: VoterName): EditState => {
+  const pair = state.voterBallotPairs.find(([v, ballot]) => v === voter);
+  if (!pair) {
+    return state.editState;
+  }
+  const [, ballot] = pair;
+  const tempBallot = _.mapValues(ballot, String);
+  return {
+    type: 'editBallot',
+    voter,
+    tempBallot,
+  };
+};
+
+const setTempBallot = (
+  state: AppState,
+  candidate: CandidateName,
+  value: string,
+): AppState => {
+  if (!state.editState || state.editState.type !== 'editBallot') {
+    return state;
+  }
+  const tempBallotCopy = {...state.editState.tempBallot};
+  tempBallotCopy[candidate] = value;
+  return {
+    ...state,
+    editState: {
+      ...state.editState,
+      tempBallot: tempBallotCopy,
+    }
+  };
+};
+
+const commitEditState = (state: AppState): AppState => {
+  const { editState, voterBallotPairs } = state;
+  if (editState === null) {
+    return state;
+  }
+  const { tempBallot } = editState;
+  const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs)
+  for (const pair of voterBallotPairsCopy) {
+    const [voter, ] = pair;
+    if (voter === editState.voter) {
+      // TODO: error state if can't map number?
+      pair[1] =  _.mapValues(tempBallot, Number);
+    }
+  }
+  return {
+    ...state,
+    voterBallotPairs: voterBallotPairsCopy,
+    editState: null,
+  }
+
+}
 
 export const addVoter = (
   voterBallotPairs: VoterBallotPair[],
@@ -61,21 +112,6 @@ export const addCandidate = (
   for (const [, ballot] of newState) {
     ballot[newBookName] = ncandidates + 1;
   }
-  return newState;
-};
-
-const setCell = (
-  voterBallotPairs: VoterBallotPair[],
-  candidate: CandidateName,
-  voter: VoterName,
-  value: string,
-): VoterBallotPair[] => {
-  const newState = [...voterBallotPairs];
-  // TODO: ! is bad
-  const [, ballot] = newState.find(
-    ([voterName, ballot]) => voterName === voter,
-  )!;
-  ballot[candidate] = Number(value);
   return newState;
 };
 
