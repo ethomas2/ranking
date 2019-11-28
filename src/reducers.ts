@@ -10,12 +10,18 @@ import {
 import _ from 'lodash';
 
 export const reducer = (state: AppState, action: Action): AppState => {
-  const {voterBallotPairs} = state;
+  const {voterBallotPairs, editState} = state;
   switch (action.type) {
     case 'editBallot':
       return {...state, editState: editBallot(state, action.voter)};
     case 'setTempBallot':
       return setTempBallot(state, action.candidate, action.value);
+    case 'editVoterName':
+      const oldName = action.voter;
+      const newName = action.voter;
+      return {...state, editState: {type: 'editVoterName', oldName, newName}};
+    case 'changeVoterName':
+      return changeVoterName(state, action.value);
     case 'commitEditState':
       return commitEditState(state);
     case 'addVoter':
@@ -59,31 +65,61 @@ const setTempBallot = (
     editState: {
       ...state.editState,
       tempBallot: tempBallotCopy,
-    }
+    },
+  };
+};
+
+const changeVoterName = (state: AppState, value: string): AppState => {
+  const {editState} = state;
+  if (!editState || editState.type !== 'editVoterName') {
+    return state;
+  }
+  return {
+    ...state,
+    editState: {
+      ...editState,
+      newName: value,
+    },
   };
 };
 
 const commitEditState = (state: AppState): AppState => {
-  const { editState, voterBallotPairs } = state;
+  const {editState, voterBallotPairs} = state;
   if (editState === null) {
     return state;
-  }
-  const { tempBallot } = editState;
-  const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs)
-  for (const pair of voterBallotPairsCopy) {
-    const [voter, ] = pair;
-    if (voter === editState.voter) {
-      // TODO: error state if can't map number?
-      pair[1] =  _.mapValues(tempBallot, Number);
+  } else if (editState.type === 'editBallot') {
+    const {tempBallot} = editState;
+    const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs);
+    for (const pair of voterBallotPairsCopy) {
+      const [voter] = pair;
+      if (voter === editState.voter) {
+        // TODO: error state if can't map number?
+        pair[1] = _.mapValues(tempBallot, Number);
+      }
     }
+    return {
+      ...state,
+      voterBallotPairs: voterBallotPairsCopy,
+      editState: null,
+    };
+  } else if (editState.type === 'editVoterName') {
+    const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs)
+    for (const pair of voterBallotPairsCopy) {
+      if (pair[0] === editState.oldName) {
+        pair[0] = editState.newName;
+      }
+    }
+    return {
+      ...state,
+      voterBallotPairs: voterBallotPairsCopy,
+      editState: null,
+    }
+  } else {
+    // should never happen but typescript isn't smart enough to know (or i'm
+    // not smart enough to get ts to know)
+    return state;
   }
-  return {
-    ...state,
-    voterBallotPairs: voterBallotPairsCopy,
-    editState: null,
-  }
-
-}
+};
 
 export const addVoter = (
   voterBallotPairs: VoterBallotPair[],

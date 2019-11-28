@@ -14,12 +14,16 @@ export type EditState =
       voter: VoterName; // The voter's name of the ballot we're editing
       tempBallot: TempBallot;
     }
+  | {
+      type: 'editVoterName';
+      oldName: VoterName;
+      newName: VoterName;
+    }
   // | {
-      // type: 'editVoterName';
-    // }
-  // | {
-      // type: 'editCandidateName';
-    // }
+  // type: 'editCandidateName';
+  // oldName: VoterName;
+  // newName: VoterName;
+  // }
   | null;
 
 export type AppState = {
@@ -30,6 +34,7 @@ export type AppState = {
 
 export type Action =
   | {
+      // enter edit state in mode editBallot
       type: 'editBallot';
       voter: VoterName;
     }
@@ -37,6 +42,15 @@ export type Action =
       type: 'setTempBallot';
       candidate: CandidateName;
       value: string;
+    }
+  | {
+      // enter edit state in mode editVoterName
+      // TODO: rename actions with naming conventsion enterEditState, editFoo
+      type: 'editVoterName';
+      voter: VoterName;
+    } | {
+      type: 'changeVoterName';
+      value: VoterName;
     }
   | {
       type: 'commitEditState';

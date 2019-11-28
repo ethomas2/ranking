@@ -37,7 +37,9 @@ const App: React.FC = () => {
         <td
           onClick={e => dispatch({type: 'editBallot', voter})}
           key={`td-candidate-${candidate}-voter-${voter}`}>
-          {editState && editState.type === 'editBallot' && editState.voter === voter ? (
+          {editState &&
+          editState.type === 'editBallot' &&
+          editState.voter === voter ? (
             <input
               value={editState.tempBallot[candidate]}
               onChange={e =>
@@ -48,8 +50,7 @@ const App: React.FC = () => {
                 })
               }
               onKeyDown={e =>
-                e.keyCode === 13 &&
-                dispatch({type: 'commitEditState'})
+                e.keyCode === 13 && dispatch({type: 'commitEditState'})
               }
             />
           ) : (
@@ -64,7 +65,28 @@ const App: React.FC = () => {
     <tr>
       <th />
       {voterBallotPairs.map(([voter]) => (
-        <th key={`voter-${voter}`}>{voter}</th>
+        <th
+          onClick={() => dispatch({type: 'editVoterName', voter})}
+          key={`voter-${voter}`}>
+          {editState &&
+          editState.type === 'editVoterName' &&
+          editState.oldName === voter ? (
+            <input
+              value={editState.newName}
+              onChange={e =>
+                dispatch({
+                  type: 'changeVoterName',
+                  value: e.target.value,
+                })
+              }
+              onKeyDown={e =>
+                e.keyCode === 13 && dispatch({type: 'commitEditState'})
+              }
+            />
+          ) : (
+            voter
+          )}
+        </th>
       ))}
       <th>
         <input
