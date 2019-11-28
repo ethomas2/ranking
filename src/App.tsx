@@ -1,5 +1,5 @@
 import React, {useReducer} from 'react';
-import {AppState, Action} from './types';
+import {AppState, Action, VoterName, CandidateName} from './types';
 import {reducer, runElection} from './reducers';
 
 const defaultBallot1 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
@@ -33,29 +33,14 @@ const App: React.FC = () => {
   const tableBodyContent = candidates.map(candidate => (
     <tr key={`candidate-row-${candidate}`}>
       <td>{candidate}</td>
-      {voterBallotPairs.map(([voter, ballot]) => (
-        <td
-          onClick={e => dispatch({type: 'editBallot', voter})}
-          key={`td-candidate-${candidate}-voter-${voter}`}>
-          {editState &&
-          editState.type === 'editBallot' &&
-          editState.voter === voter ? (
-            <input
-              value={editState.tempBallot[candidate]}
-              onChange={e =>
-                dispatch({
-                  type: 'setTempBallot',
-                  candidate,
-                  value: e.target.value,
-                })
-              }
-              onKeyDown={e =>
-                e.keyCode === 13 && dispatch({type: 'commitEditState'})
-              }
-            />
-          ) : (
-            ballot[candidate]
-          )}
+      {voterBallotPairs.map(([voter,]) => (
+        <td key={`td-candidate-${candidate}-voter-${voter}`}>
+          <TableBodyCell
+            voter={voter}
+            candidate={candidate}
+            state={state}
+            dispatch={dispatch}
+          />
         </td>
       ))}
     </tr>
@@ -130,3 +115,44 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+type TableBodyCellProps = {
+  state: AppState;
+  dispatch: React.Dispatch<Action>;
+  voter: VoterName;
+  candidate: CandidateName;
+};
+const TableBodyCell: React.FC<TableBodyCellProps> = (props) => {
+  const {
+    state: {editState, voterBallotPairs},
+    dispatch,
+    voter,
+    candidate,
+  } = props;
+  // TODO: utility function getBallot(state, 'voter')
+  const [,ballot] = voterBallotPairs.find(([v,]) => v === voter)!
+  let content;
+  if (
+    editState &&
+    editState.type === 'editBallot' &&
+    editState.voter === voter
+  ) {
+    content = <input
+      value={editState.tempBallot[candidate]}
+      onChange={e =>
+        dispatch({
+          type: 'setTempBallot',
+          candidate,
+          value: e.target.value,
+        })
+      }
+      onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
+    />;
+  } else {
+   content = String(ballot[candidate]);
+  }
+  return <div onClick={e => dispatch({type: 'editBallot', voter})}>
+    {content}
+  </div>
+
+};
