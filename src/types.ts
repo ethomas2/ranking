@@ -19,11 +19,11 @@ export type EditState =
       oldName: VoterName;
       newName: VoterName;
     }
-  // | {
-  // type: 'editCandidateName';
-  // oldName: VoterName;
-  // newName: VoterName;
-  // }
+  | {
+      type: 'editCandidateName';
+      oldName: CandidateName;
+      newName: CandidateName;
+    }
   | null;
 
 export type AppState = {
@@ -48,9 +48,18 @@ export type Action =
       // TODO: rename actions with naming conventsion enterEditState, editFoo
       type: 'editVoterName';
       voter: VoterName;
-    } | {
+    }
+  | {
       type: 'changeVoterName';
       value: VoterName;
+    }
+  | {
+      type: 'editCandidateName';
+      candidate: CandidateName;
+    }
+  | {
+      type: 'changeCandidateName';
+      value: CandidateName;
     }
   | {
       type: 'commitEditState';

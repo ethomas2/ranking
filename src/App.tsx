@@ -32,7 +32,7 @@ const App: React.FC = () => {
 
   const tableBodyContent = candidates.map(candidate => (
     <tr key={`candidate-row-${candidate}`}>
-      <td>{candidate}</td>
+      <td><CandidateNameCell state={state} dispatch={dispatch} candidate={candidate}/></td>
       {voterBallotPairs.map(([voter]) => (
         <td key={`td-candidate-${candidate}-voter-${voter}`}>
           <TableBodyCell
@@ -51,7 +51,7 @@ const App: React.FC = () => {
       <th />
       {voterBallotPairs.map(([voter]) => (
         <th key={`voter-${voter}`}>
-          <VoterHeader state={state} dispatch={dispatch} voter={voter}/>
+          <VoterHeaderCell state={state} dispatch={dispatch} voter={voter} />
         </th>
       ))}
       <th>
@@ -139,20 +139,25 @@ const TableBodyCell: React.FC<TableBodyCellProps> = props => {
   );
 };
 
-type VoterHeaderProps = {
+type VoterHeaderCellProps = {
   state: AppState;
   dispatch: React.Dispatch<Action>;
   voter: VoterName;
-}
-const VoterHeader: React.FC<VoterHeaderProps> = props => {
+};
+const VoterHeaderCell: React.FC<VoterHeaderCellProps> = props => {
   const {
     state: {editState},
     dispatch,
     voter,
   } = props;
   let content;
-  if ( editState && editState.type === 'editVoterName' && editState.oldName === voter ) {
-      content = <input
+  if (
+    editState &&
+    editState.type === 'editVoterName' &&
+    editState.oldName === voter
+  ) {
+    content = (
+      <input
         value={editState.newName}
         onChange={e =>
           dispatch({
@@ -162,8 +167,52 @@ const VoterHeader: React.FC<VoterHeaderProps> = props => {
         }
         onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
       />
+    );
   } else {
-      content = voter;
+    content = voter;
   }
-  return <div onClick={() => dispatch({type: 'editVoterName', voter})} >{content}</div>
+  return (
+    <div onClick={() => dispatch({type: 'editVoterName', voter})}>
+      {content}
+    </div>
+  );
+};
+
+type CandidateNameCellProps = {
+  state: AppState;
+  dispatch: React.Dispatch<Action>;
+  candidate: CandidateName;
+};
+const CandidateNameCell: React.FC<CandidateNameCellProps> = props => {
+  const {
+    state: {editState},
+    dispatch,
+    candidate,
+  } = props;
+  let content;
+  if (
+    editState &&
+    editState.type === 'editCandidateName' &&
+    editState.oldName === candidate
+  ) {
+    content = (
+      <input
+        value={editState.newName}
+        onChange={e =>
+          dispatch({
+            type: 'changeCandidateName',
+            value: e.target.value,
+          })
+        }
+        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
+      />
+    );
+  } else {
+    content = candidate;
+  }
+  return (
+    <div onClick={() => dispatch({type: 'editCandidateName', candidate})}>
+      {content}
+    </div>
+  );
 };

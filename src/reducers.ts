@@ -10,7 +10,7 @@ import {
 import _ from 'lodash';
 
 export const reducer = (state: AppState, action: Action): AppState => {
-  const {voterBallotPairs, editState} = state;
+  const {voterBallotPairs} = state;
   switch (action.type) {
     case 'editBallot':
       return {...state, editState: editBallot(state, action.voter)};
@@ -22,6 +22,10 @@ export const reducer = (state: AppState, action: Action): AppState => {
       return {...state, editState: {type: 'editVoterName', oldName, newName}};
     case 'changeVoterName':
       return changeVoterName(state, action.value);
+    case 'editCandidateName':
+      return editCandidateName(state, action.candidate);
+    case 'changeCandidateName':
+      return changeCandidateName(state, action.value);
     case 'commitEditState':
       return commitEditState(state);
     case 'addVoter':
@@ -83,6 +87,32 @@ const changeVoterName = (state: AppState, value: string): AppState => {
   };
 };
 
+const editCandidateName = (state: AppState, candidate: string): AppState => {
+  return {
+    ...state,
+    editState: {
+      type: 'editCandidateName',
+      oldName: candidate,
+      newName: candidate,
+    },
+  };
+};
+
+const changeCandidateName = (state: AppState, value: string): AppState => {
+  const {editState} = state;
+  if (!editState || editState.type !== 'editCandidateName') {
+    return state;
+  }
+
+  return {
+    ...state,
+    editState: {
+      ...editState,
+      newName: value,
+    },
+  };
+};
+
 const commitEditState = (state: AppState): AppState => {
   const {editState, voterBallotPairs} = state;
   if (editState === null) {
@@ -107,6 +137,7 @@ const commitEditState = (state: AppState): AppState => {
       editState.newName !== editState.oldName &&
       voterBallotPairs.some(([v]) => v === editState.newName)
     ) {
+      // thing i'm trying to change it to already exists
       return state;
     }
     const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs);
@@ -119,6 +150,30 @@ const commitEditState = (state: AppState): AppState => {
       ...state,
       voterBallotPairs: voterBallotPairsCopy,
       editState: null,
+    };
+  } else if (editState.type === 'editCandidateName') {
+    const {voterBallotPairs, editState} = state;
+    if (!editState || editState.type !== 'editCandidateName') {
+      return state;
+    }
+    const existingCandidates = _.chain(voterBallotPairs)
+      .map(([,ballot]) => Object.keys(ballot))
+      .flatten()
+      .uniq()
+      .value()
+    if (existingCandidates.includes(editState.newName)) {
+      return state;
+    }
+    const {oldName, newName} = editState;
+    const newVoterBallotPairs = _.cloneDeep(voterBallotPairs);
+    for (const pair of newVoterBallotPairs) {
+      const [, ballot] = pair;
+      pair[1] = _.mapKeys(ballot, (value, c) => (c === oldName ? newName : c));
+    }
+
+    return {
+      ...state,
+      voterBallotPairs: newVoterBallotPairs,
     };
   } else {
     // should never happen but typescript isn't smart enough to know (or i'm
