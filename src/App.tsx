@@ -22,7 +22,7 @@ const App: React.FC = () => {
     reducer,
     defaultState,
   );
-  const {voterBallotPairs, electionResult, editState} = state;
+  const {voterBallotPairs, electionResult} = state;
 
   // TODO: make sure all people have all the same candidate keys
   // TODO: this will break if we have 0 ballots
@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const tableBodyContent = candidates.map(candidate => (
     <tr key={`candidate-row-${candidate}`}>
       <td>{candidate}</td>
-      {voterBallotPairs.map(([voter,]) => (
+      {voterBallotPairs.map(([voter]) => (
         <td key={`td-candidate-${candidate}-voter-${voter}`}>
           <TableBodyCell
             voter={voter}
@@ -50,27 +50,8 @@ const App: React.FC = () => {
     <tr>
       <th />
       {voterBallotPairs.map(([voter]) => (
-        <th
-          onClick={() => dispatch({type: 'editVoterName', voter})}
-          key={`voter-${voter}`}>
-          {editState &&
-          editState.type === 'editVoterName' &&
-          editState.oldName === voter ? (
-            <input
-              value={editState.newName}
-              onChange={e =>
-                dispatch({
-                  type: 'changeVoterName',
-                  value: e.target.value,
-                })
-              }
-              onKeyDown={e =>
-                e.keyCode === 13 && dispatch({type: 'commitEditState'})
-              }
-            />
-          ) : (
-            voter
-          )}
+        <th key={`voter-${voter}`}>
+          <VoterHeader state={state} dispatch={dispatch} voter={voter}/>
         </th>
       ))}
       <th>
@@ -122,7 +103,7 @@ type TableBodyCellProps = {
   voter: VoterName;
   candidate: CandidateName;
 };
-const TableBodyCell: React.FC<TableBodyCellProps> = (props) => {
+const TableBodyCell: React.FC<TableBodyCellProps> = props => {
   const {
     state: {editState, voterBallotPairs},
     dispatch,
@@ -130,29 +111,59 @@ const TableBodyCell: React.FC<TableBodyCellProps> = (props) => {
     candidate,
   } = props;
   // TODO: utility function getBallot(state, 'voter')
-  const [,ballot] = voterBallotPairs.find(([v,]) => v === voter)!
+  const [, ballot] = voterBallotPairs.find(([v]) => v === voter)!;
   let content;
   if (
     editState &&
     editState.type === 'editBallot' &&
     editState.voter === voter
   ) {
-    content = <input
-      value={editState.tempBallot[candidate]}
-      onChange={e =>
-        dispatch({
-          type: 'setTempBallot',
-          candidate,
-          value: e.target.value,
-        })
-      }
-      onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
-    />;
+    content = (
+      <input
+        value={editState.tempBallot[candidate]}
+        onChange={e =>
+          dispatch({
+            type: 'setTempBallot',
+            candidate,
+            value: e.target.value,
+          })
+        }
+        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
+      />
+    );
   } else {
-   content = String(ballot[candidate]);
+    content = String(ballot[candidate]);
   }
-  return <div onClick={e => dispatch({type: 'editBallot', voter})}>
-    {content}
-  </div>
+  return (
+    <div onClick={e => dispatch({type: 'editBallot', voter})}>{content}</div>
+  );
+};
 
+type VoterHeaderProps = {
+  state: AppState;
+  dispatch: React.Dispatch<Action>;
+  voter: VoterName;
+}
+const VoterHeader: React.FC<VoterHeaderProps> = props => {
+  const {
+    state: {editState},
+    dispatch,
+    voter,
+  } = props;
+  let content;
+  if ( editState && editState.type === 'editVoterName' && editState.oldName === voter ) {
+      content = <input
+        value={editState.newName}
+        onChange={e =>
+          dispatch({
+            type: 'changeVoterName',
+            value: e.target.value,
+          })
+        }
+        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
+      />
+  } else {
+      content = voter;
+  }
+  return <div onClick={() => dispatch({type: 'editVoterName', voter})} >{content}</div>
 };
