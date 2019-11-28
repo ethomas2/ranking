@@ -1,6 +1,7 @@
-import React, {useReducer} from 'react';
+import React, {useReducer, useState} from 'react';
 import {AppState, Action, VoterName, CandidateName} from './types';
 import {reducer, runElection} from './reducers';
+import './App.css';
 
 const defaultBallot1 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
 const defaultBallot2 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
@@ -32,7 +33,13 @@ const App: React.FC = () => {
 
   const tableBodyContent = candidates.map(candidate => (
     <tr key={`candidate-row-${candidate}`}>
-      <td><CandidateNameCell state={state} dispatch={dispatch} candidate={candidate}/></td>
+      <td>
+        <CandidateNameCell
+          state={state}
+          dispatch={dispatch}
+          candidate={candidate}
+        />
+      </td>
       {voterBallotPairs.map(([voter]) => (
         <td key={`td-candidate-${candidate}-voter-${voter}`}>
           <TableBodyCell
@@ -110,6 +117,7 @@ const TableBodyCell: React.FC<TableBodyCellProps> = props => {
     voter,
     candidate,
   } = props;
+  const [autoFocus, setAutoFocus] = useState<boolean>(false);
   // TODO: utility function getBallot(state, 'voter')
   const [, ballot] = voterBallotPairs.find(([v]) => v === voter)!;
   let content;
@@ -120,6 +128,7 @@ const TableBodyCell: React.FC<TableBodyCellProps> = props => {
   ) {
     content = (
       <input
+        autoFocus={autoFocus}
         value={editState.tempBallot[candidate]}
         onChange={e =>
           dispatch({
@@ -133,6 +142,10 @@ const TableBodyCell: React.FC<TableBodyCellProps> = props => {
     );
   } else {
     content = String(ballot[candidate]);
+    if (autoFocus) {
+      // TODO: this is disgusting. You should feel bad
+      setAutoFocus(false);
+    }
   }
   return (
     <div onClick={e => dispatch({type: 'editBallot', voter})}>{content}</div>
@@ -158,6 +171,7 @@ const VoterHeaderCell: React.FC<VoterHeaderCellProps> = props => {
   ) {
     content = (
       <input
+        autoFocus
         value={editState.newName}
         onChange={e =>
           dispatch({
@@ -197,6 +211,7 @@ const CandidateNameCell: React.FC<CandidateNameCellProps> = props => {
   ) {
     content = (
       <input
+        autoFocus
         value={editState.newName}
         onChange={e =>
           dispatch({
