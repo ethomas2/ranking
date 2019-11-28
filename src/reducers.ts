@@ -103,7 +103,13 @@ const commitEditState = (state: AppState): AppState => {
       editState: null,
     };
   } else if (editState.type === 'editVoterName') {
-    const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs)
+    if (
+      editState.newName !== editState.oldName &&
+      voterBallotPairs.some(([v]) => v === editState.newName)
+    ) {
+      return state;
+    }
+    const voterBallotPairsCopy = _.cloneDeep(voterBallotPairs);
     for (const pair of voterBallotPairsCopy) {
       if (pair[0] === editState.oldName) {
         pair[0] = editState.newName;
@@ -113,7 +119,7 @@ const commitEditState = (state: AppState): AppState => {
       ...state,
       voterBallotPairs: voterBallotPairsCopy,
       editState: null,
-    }
+    };
   } else {
     // should never happen but typescript isn't smart enough to know (or i'm
     // not smart enough to get ts to know)
