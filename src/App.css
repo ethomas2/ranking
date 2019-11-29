@@ -1,22 +1,53 @@
 .App {
-  text-align: center;
+  height: 100vh;
+  overflow-y: auto;
+
+  margin: 50px 50px;
 }
 
-.App-logo {
-  height: 40vmin;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.App__title-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  width: 100%;
 }
 
-.App-link {
-  color: #09d3ac;
+.App__title {
+  padding-bottom: 5px;
+  border-bottom: 1px solid #66666666;
+}
+
+/* This is very not BEM. Do you care? */
+table {
+  border-collapse: collapse;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+tbody tr {
+  height: 30px;
+}
+
+input {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+input[type='text'],
+input[type='textarea'],
+textarea {
+  background: transparent;
+  border: none;
+  overflow: hidden;
+  resize: none;
+}
+
+input[type='button'] {
+  margin: 10px 2px;
+}
+
+thead {
+  border-bottom: 1px solid #66666666;
 }
