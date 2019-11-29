@@ -32,6 +32,7 @@ const App: React.FC = () => {
   // verbose
   const tableHeaderContent = (
     <tr>
+      <th />
       {tableHeaderData.map((item, i) => (
         <th key={`header-${i}`}>
           <input
