@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {removeRow, removeCol, setArr, setArr2d} from './arrayUtils';
 import './App.css';
 
 const defaultTableData = [
@@ -20,7 +21,6 @@ const defaultTableLeftCol = [
   'Book 3',
 ];
 const App: React.FC = () => {
-  // TODO: useArrState might be useful here?
   const [tableBodyData, setTableData] = useState<string[][]>(defaultTableData);
   const [tableHeaderData, setTableHeader] = useState<string[]>(
     defaultTableHeader,
@@ -151,34 +151,3 @@ const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
     </>
   );
 };
-
-function removeRow<T>(arr: T[], idx: number): T[] {
-  const copy = [...arr];
-  copy.splice(idx, 1);
-  return copy;
-}
-
-function removeCol<T>(arr: T[][], idx: number): T[][] {
-  const copy = arr.map(row => [...row]);
-  return copy.map(row => {
-    row.splice(idx, 1);
-    return row;
-  });
-}
-
-function setArr<T>(arr: T[], idx: number, val: T): T[] {
-  const copy = [...arr];
-  copy[idx] = val;
-  return copy;
-}
-
-function setArr2d<T>(
-  arr: T[][],
-  rowIdx: number,
-  colIdx: number,
-  val: T,
-): T[][] {
-  const copy = arr.map(row => [...row]);
-  copy[rowIdx][colIdx] = val;
-  return copy;
-}
