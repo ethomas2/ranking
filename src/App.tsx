@@ -16,7 +16,7 @@ const defaultTableHeader = [
   'G',
 ];
 const defaultTableLeftCol = [
-  'Book 1 -- The end of the beggining was the beggining of the end',
+  'Book 1 -- I wanna be the very best like no one ever was',
   'Book 2',
   'Book 3',
 ];
@@ -113,21 +113,21 @@ type WithHoverIconProps = {
 const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
   const {children, onClick} = props;
   const child = React.Children.only(children);
-  const [childElm, setChildElm] = useState<Element | null>(null);
+  const [childRef, setChildRef] = useState<Element | null>(null);
 
   const [mouseOverChild, setMouseOverChild] = useState<boolean>(false);
   const [mouseOverIcon, setMouseOverIcon] = useState<boolean>(false);
   const iconVisible = mouseOverChild || mouseOverIcon;
 
-  const icon = childElm && (
+  const icon = childRef && (
     <img
       src="minus-icon.png"
       alt="no img"
       style={{
         position: 'absolute',
         // I think accessing window attributes in render is a no no
-        top: window.scrollY + childElm.getBoundingClientRect().top - 6,
-        left: window.scrollX + childElm.getBoundingClientRect().left - 6,
+        top: window.scrollY + childRef.getBoundingClientRect().top - 6,
+        left: window.scrollX + childRef.getBoundingClientRect().left - 6,
         width: '12px',
         height: '12px',
         display: iconVisible ? 'block' : 'none',
@@ -141,7 +141,7 @@ const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
   const elm = React.cloneElement(child, {
     onMouseOver: () => setMouseOverChild(true),
     onMouseLeave: () => setMouseOverChild(false),
-    ref: (r: Element | null) => setChildElm(r),
+    ref: (r: Element | null) => setChildRef(r),
   });
 
   return (
