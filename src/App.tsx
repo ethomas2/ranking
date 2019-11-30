@@ -29,25 +29,27 @@ const App: React.FC = () => {
     defaultTableLeftCol,
   );
 
-  const tableHeaderContent = (
+  const tableHeaderRow = (
     <tr>
       <th />
       {tableHeaderData.map((item, i) => (
         <th key={`header-${i}`}>
-          <input
-            type="text"
-            size={4}
-            value={item}
-            onChange={e =>
-              setTableHeader(setArr(tableHeaderData, i, e.target.value))
-            }
-          />
+          <WithIcon>
+            <input
+              type="text"
+              size={4}
+              value={item}
+              onChange={e =>
+                setTableHeader(setArr(tableHeaderData, i, e.target.value))
+              }
+            />
+          </WithIcon>
         </th>
       ))}
     </tr>
   );
 
-  const tableBodyContent = tableBodyData.map((row, rowIdx) => (
+  const tableBodyRows = tableBodyData.map((row, rowIdx) => (
     <tr key={`row-${rowIdx}`}>
       <td>
         <textarea
@@ -81,8 +83,8 @@ const App: React.FC = () => {
         <h2 className="App__title">Votes on Votes on Votes</h2>
       </div>
       <table>
-        <thead>{tableHeaderContent}</thead>
-        <tbody>{tableBodyContent}</tbody>
+        <thead>{tableHeaderRow}</thead>
+        <tbody>{tableBodyRows}</tbody>
       </table>
       <div>
         <input value="Add Person" type="button" />
@@ -93,6 +95,49 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+type WithIconProps = {
+  children: JSX.Element;
+};
+const WithIcon: React.FC<WithIconProps> = props => {
+  const child = React.Children.only(props.children);
+  const [childElm, setChildElm] = useState<Element | null>(null);
+
+  const [mouseOverChild, setMouseOverChild] = useState<boolean>(false);
+  const [mouseOverIcon, setMouseOverIcon] = useState<boolean>(false);
+  const iconVisible = mouseOverChild || mouseOverIcon;
+
+  const icon = childElm && (
+    <img
+      src="minus-icon.png"
+      alt="no img"
+      style={{
+        position: 'absolute',
+        // I think accessing window attributes in render is a no no
+        top: window.scrollY + childElm.getBoundingClientRect().top - 6,
+        left: window.scrollX + childElm.getBoundingClientRect().left - 6,
+        width: '12px',
+        height: '12px',
+        display: iconVisible ? 'block' : 'none',
+      }}
+      onMouseOver={() => setMouseOverIcon(true)}
+      onMouseLeave={() => setMouseOverIcon(false)}
+    />
+  );
+
+  const elm = React.cloneElement(child, {
+    onMouseOver: () => setMouseOverChild(true),
+    onMouseLeave: () => setMouseOverChild(false),
+    ref: (r: Element | null) => setChildElm(r),
+  });
+
+  return (
+    <>
+      {elm}
+      {icon}
+    </>
+  );
+};
 
 function setArr<T>(arr: T[], idx: number, val: T): T[] {
   const copy = [...arr];
