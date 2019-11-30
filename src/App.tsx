@@ -87,6 +87,14 @@ const App: React.FC = () => {
     </tr>
   ));
 
+  const addPerson = () => {
+    // TODO: all these modifications of state that reference state should use
+    // callback form of setState
+    const npeople = tableHeaderData.length;
+    setTableHeader(tableHeaderData.concat([`Person - ${npeople}`]));
+    setTableData(tableBodyData.map((row, i) => row.concat(`${i + 1}`)));
+  };
+  const addBook = () => {};
   return (
     <div className="App">
       <div className="App__title-container">
@@ -97,8 +105,8 @@ const App: React.FC = () => {
         <tbody>{tableBodyRows}</tbody>
       </table>
       <div>
-        <input value="Add Person" type="button" />
-        <input value="Add Book" type="button" />
+        <input value="Add Person" onClick={addPerson} type="button" />
+        <input value="Add Book" onClick={addBook} type="button" />
       </div>
     </div>
   );
