@@ -34,7 +34,11 @@ const App: React.FC = () => {
       <th />
       {tableHeaderData.map((item, i) => (
         <th key={`header-${i}`}>
-          <WithIcon>
+          <WithHoverIcon
+            onClick={() => {
+              setTableData(removeCol(tableBodyData, i));
+              setTableHeader(removeRow(tableHeaderData, i));
+            }}>
             <input
               type="text"
               size={4}
@@ -43,7 +47,7 @@ const App: React.FC = () => {
                 setTableHeader(setArr(tableHeaderData, i, e.target.value))
               }
             />
-          </WithIcon>
+          </WithHoverIcon>
         </th>
       ))}
     </tr>
@@ -52,12 +56,18 @@ const App: React.FC = () => {
   const tableBodyRows = tableBodyData.map((row, rowIdx) => (
     <tr key={`row-${rowIdx}`}>
       <td>
-        <textarea
-          value={tableLeftColData[rowIdx]}
-          onChange={e =>
-            setTableLeftCol(setArr(tableLeftColData, rowIdx, e.target.value))
-          }
-        />
+        <WithHoverIcon
+          onClick={() => {
+            setTableData(removeRow(tableBodyData, rowIdx));
+            setTableLeftCol(removeRow(tableLeftColData, rowIdx));
+          }}>
+          <textarea
+            value={tableLeftColData[rowIdx]}
+            onChange={e =>
+              setTableLeftCol(setArr(tableLeftColData, rowIdx, e.target.value))
+            }
+          />
+        </WithHoverIcon>
       </td>
       {row.map((item, colIdx) => (
         <td key={`cell-${rowIdx}-${colIdx}`} className="Table__td-cell">
@@ -96,11 +106,13 @@ const App: React.FC = () => {
 
 export default App;
 
-type WithIconProps = {
+type WithHoverIconProps = {
   children: JSX.Element;
+  onClick?: () => void;
 };
-const WithIcon: React.FC<WithIconProps> = props => {
-  const child = React.Children.only(props.children);
+const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
+  const {children, onClick} = props;
+  const child = React.Children.only(children);
   const [childElm, setChildElm] = useState<Element | null>(null);
 
   const [mouseOverChild, setMouseOverChild] = useState<boolean>(false);
@@ -122,6 +134,7 @@ const WithIcon: React.FC<WithIconProps> = props => {
       }}
       onMouseOver={() => setMouseOverIcon(true)}
       onMouseLeave={() => setMouseOverIcon(false)}
+      onClick={onClick}
     />
   );
 
@@ -138,6 +151,20 @@ const WithIcon: React.FC<WithIconProps> = props => {
     </>
   );
 };
+
+function removeRow<T>(arr: T[], idx: number): T[] {
+  const copy = [...arr];
+  copy.splice(idx, 1);
+  return copy;
+}
+
+function removeCol<T>(arr: T[][], idx: number): T[][] {
+  const copy = arr.map(row => [...row]);
+  return copy.map(row => {
+    row.splice(idx, 1);
+    return row;
+  });
+}
 
 function setArr<T>(arr: T[], idx: number, val: T): T[] {
   const copy = [...arr];
