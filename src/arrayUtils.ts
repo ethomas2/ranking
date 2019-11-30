@@ -1,3 +1,11 @@
+export function range(n: number) {
+  let arr = [];
+  for (var i = 0; i < n; i++) {
+    arr.push(i);
+  }
+  return arr;
+}
+
 export function removeRow<T>(arr: T[], idx: number): T[] {
   const copy = [...arr];
   copy.splice(idx, 1);

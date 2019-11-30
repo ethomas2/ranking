@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {removeRow, removeCol, setArr, setArr2d} from './arrayUtils';
+import {removeRow, removeCol, setArr, setArr2d, range} from './arrayUtils';
 import './App.css';
 
 const defaultTableData = [
@@ -28,6 +28,8 @@ const App: React.FC = () => {
   const [tableLeftColData, setTableLeftCol] = useState<string[]>(
     defaultTableLeftCol,
   );
+
+  console.log(tableBodyData);
 
   const tableHeaderRow = (
     <tr>
@@ -94,7 +96,17 @@ const App: React.FC = () => {
     setTableHeader(tableHeaderData.concat([`Person - ${npeople}`]));
     setTableData(tableBodyData.map((row, i) => row.concat(`${i + 1}`)));
   };
-  const addBook = () => {};
+
+  const addBook = () => {
+    const npeople = tableHeaderData.length;
+    const nbooks = tableBodyData.length;
+    setTableData(
+      tableBodyData.concat([range(npeople).map(() => `${nbooks + 1}`)]),
+    );
+    setTableLeftCol(tableLeftColData.concat([`Book - ${nbooks + 1}`]));
+    // console.log(tableBodyData)
+  };
+
   return (
     <div className="App">
       <div className="App__title-container">
