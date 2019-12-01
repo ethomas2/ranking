@@ -37,3 +37,4 @@ Cargo.lock
 tasks.md
 frontend/README.md
 README.md
+.envrc
