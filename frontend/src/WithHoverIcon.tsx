@@ -15,7 +15,7 @@ const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
 
   const icon = childRef && (
     <img
-      src="minus-icon.png"
+      src="/minus-icon.png"
       alt="no img"
       style={{
         position: 'absolute',
