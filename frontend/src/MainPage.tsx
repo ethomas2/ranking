@@ -1,36 +1,49 @@
-import React, {useState} from 'react';
-import {removeRow, removeCol, setArr, setArr2d, range} from './arrayUtils';
+import React, {useState, useEffect} from 'react';
+import {useParams} from 'react-router-dom';
+import {removeRow, removeCol, setArr, setArr2d, range, req} from './utils';
 import {runElection, Ballot} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
 
-const defaultTableData = [
-  ['1', '3', '1', '2', '1', '3'],
-  ['3', '1', '2', '1', '2', '1'],
-  ['2', '2', '3', '3', '3', '2'],
-];
-const defaultTableHeader = [
-  'Evan',
-  'Michaela',
-  'Dave',
-  'Linlin',
-  'Adrian',
-  'G',
-];
-const defaultTableLeftCol = [
-  'Book 1 -- I wanna be the very best like no one ever was',
-  'Book 2',
-  'Book 3',
-];
-const MainPage: React.FC = () => {
-  const [tableBodyData, setTableData] = useState<string[][]>(defaultTableData);
-  const [tableHeaderData, setTableHeader] = useState<string[]>(
-    defaultTableHeader,
-  );
-  const [tableLeftColData, setTableLeftCol] = useState<string[]>(
-    defaultTableLeftCol,
-  );
+// TODO: rename to election
+const MainPage: React.FC = props => {
+  const {id} = useParams();
+
+  const [tableBodyData, setTableData] = useState<string[][] | null>(null);
+  const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
+  const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
   const [electionState, setElectionState] = useState<string[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  type RespType = {
+    body: string[][];
+    header: string[];
+    leftCol: string[];
+  };
+  useEffect(() => {
+    req<RespType>(`http://localhost:8000/election/${id}`)
+      .then(data => {
+        const {body, header, leftCol} = data;
+        setTableData(body);
+        setTableHeader(header);
+        setTableLeftCol(leftCol);
+      })
+      .catch(error => {
+        setError(`${error}`);
+      });
+  }, [id]);
+
+  if (error !== null) {
+    return <span>`Error: ${error}`</span>;
+  }
+
+  if (
+    tableBodyData === null ||
+    tableHeaderData === null ||
+    tableLeftColData === null
+  ) {
+    return <span>Loading data ...</span>;
+  }
 
   const tableHeaderRow = (
     <tr>

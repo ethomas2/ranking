@@ -36,3 +36,7 @@ export function setArr2d<T>(
   copy[rowIdx][colIdx] = val;
   return copy;
 }
+
+export function req<T>(url: string, options?: RequestInit): Promise<T> {
+  return fetch(url, options).then(resp => (resp.json() as unknown) as T);
+}

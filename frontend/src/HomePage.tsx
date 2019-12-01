@@ -1,9 +1,7 @@
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
-function req<T>(url: string, options: RequestInit): Promise<T> {
-  return fetch(url, options).then(resp => (resp.json() as unknown) as T);
-}
+import {req} from './utils';
 
 const HomePage: React.FC = () => {
   const history = useHistory();
