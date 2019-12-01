@@ -1,233 +1,186 @@
-import React, {useReducer, useState} from 'react';
-import {AppState, Action, VoterName, CandidateName} from './types';
-import {reducer, runElection} from './reducers';
+import React, {useState} from 'react';
+import {removeRow, removeCol, setArr, setArr2d, range} from './arrayUtils';
+import {runElection, Ballot} from './instantRunoff';
 import './App.css';
 
-const defaultBallot1 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
-const defaultBallot2 = {'candidate 1': 1, 'candidate 2': 2, 'candidate 3': 3};
-const defaultBallot3 = {'candidate 1': 2, 'candidate 2': 1, 'candidate 3': 3};
-
-const defaultState: AppState = {
-  voterBallotPairs: [
-    ['voter 1', defaultBallot1],
-    ['voter 2', defaultBallot2],
-    ['voter 3', defaultBallot3],
-  ],
-
-  electionResult: null,
-  editState: null,
-};
-
+const defaultTableData = [
+  ['1', '3', '1', '2', '1', '3'],
+  ['3', '1', '2', '1', '2', '1'],
+  ['2', '2', '3', '3', '3', '2'],
+];
+const defaultTableHeader = [
+  'Evan',
+  'Michaela',
+  'Dave',
+  'Linlin',
+  'Adrian',
+  'G',
+];
+const defaultTableLeftCol = [
+  'Book 1 -- I wanna be the very best like no one ever was',
+  'Book 2',
+  'Book 3',
+];
 const App: React.FC = () => {
-  const [state, dispatch] = useReducer<React.Reducer<AppState, Action>>(
-    reducer,
-    defaultState,
+  const [tableBodyData, setTableData] = useState<string[][]>(defaultTableData);
+  const [tableHeaderData, setTableHeader] = useState<string[]>(
+    defaultTableHeader,
   );
-  const {voterBallotPairs, electionResult} = state;
+  const [tableLeftColData, setTableLeftCol] = useState<string[]>(
+    defaultTableLeftCol,
+  );
+  const [electionState, setElectionState] = useState<string[] | null>(null);
 
-  // TODO: make sure all people have all the same candidate keys
-  // TODO: this will break if we have 0 ballots
-  const candidates = Object.keys(voterBallotPairs[0][1]);
+  const tableHeaderRow = (
+    <tr>
+      <th />
+      {tableHeaderData.map((item, i) => (
+        <th key={`header-${i}`}>
+          <WithHoverIcon
+            onClick={() => {
+              setTableData(removeCol(tableBodyData, i));
+              setTableHeader(removeRow(tableHeaderData, i));
+            }}>
+            <input
+              type="text"
+              size={4}
+              value={item}
+              onChange={e =>
+                setTableHeader(setArr(tableHeaderData, i, e.target.value))
+              }
+            />
+          </WithHoverIcon>
+        </th>
+      ))}
+    </tr>
+  );
 
-  // TODO: move setcell, addcandidate, addvoter to dispatch actions
-
-  const tableBodyContent = candidates.map(candidate => (
-    <tr key={`candidate-row-${candidate}`}>
+  const tableBodyRows = tableBodyData.map((row, rowIdx) => (
+    <tr key={`row-${rowIdx}`}>
       <td>
-        <CandidateNameCell
-          state={state}
-          dispatch={dispatch}
-          candidate={candidate}
-        />
+        <WithHoverIcon
+          onClick={() => {
+            setTableData(removeRow(tableBodyData, rowIdx));
+            setTableLeftCol(removeRow(tableLeftColData, rowIdx));
+          }}>
+          <textarea
+            value={tableLeftColData[rowIdx]}
+            onChange={e =>
+              setTableLeftCol(setArr(tableLeftColData, rowIdx, e.target.value))
+            }
+          />
+        </WithHoverIcon>
       </td>
-      {voterBallotPairs.map(([voter]) => (
-        <td key={`td-candidate-${candidate}-voter-${voter}`}>
-          <TableBodyCell
-            voter={voter}
-            candidate={candidate}
-            state={state}
-            dispatch={dispatch}
+      {row.map((item, colIdx) => (
+        <td key={`cell-${rowIdx}-${colIdx}`} className="Table__td-cell">
+          <input
+            size={1}
+            type="text"
+            className="Table__input-cell"
+            value={item}
+            onChange={e =>
+              setTableData(
+                setArr2d(tableBodyData, rowIdx, colIdx, e.target.value),
+              )
+            }
           />
         </td>
       ))}
     </tr>
   ));
 
-  const tableHeaderContent = (
-    <tr>
-      <th />
-      {voterBallotPairs.map(([voter]) => (
-        <th key={`voter-${voter}`}>
-          <VoterHeaderCell state={state} dispatch={dispatch} voter={voter} />
-        </th>
-      ))}
-      <th>
-        <input
-          value="Add person"
-          type="button"
-          onClick={() => dispatch({type: 'addVoter', voter: 'King Phillip'})}
-        />
-      </th>
-    </tr>
-  );
+  const addPerson = () => {
+    // TODO: all these modifications of state that reference state should use
+    // callback form of setState
+    const npeople = tableHeaderData.length;
+    setTableHeader(tableHeaderData.concat([`Person - ${npeople}`]));
+    setTableData(tableBodyData.map((row, i) => row.concat(`${i + 1}`)));
+  };
+
+  const addBook = () => {
+    const npeople = tableHeaderData.length;
+    const nbooks = tableBodyData.length;
+    setTableData(
+      tableBodyData.concat([range(npeople).map(() => `${nbooks + 1}`)]),
+    );
+    setTableLeftCol(tableLeftColData.concat([`Book - ${nbooks + 1}`]));
+  };
+
+  const onSubmit = () => {
+    const ballots: Ballot[] = range(tableHeaderData.length).map(() => ({}));
+    for (var rowIdx = 0; rowIdx < tableLeftColData.length; rowIdx++) {
+      for (var colIdx = 0; colIdx < tableHeaderData.length; colIdx++) {
+        ballots[colIdx][tableLeftColData[rowIdx]] = Number(
+          tableBodyData[rowIdx][colIdx],
+        );
+      }
+    }
+    setElectionState(runElection(ballots));
+  };
 
   return (
-    <div>
+    <div className="App">
+      <div className="App__title-container">
+        <h2 className="App__title">Votes on Votes on Votes</h2>
+      </div>
       <table>
-        <thead>{tableHeaderContent}</thead>
-        <tbody>{tableBodyContent}</tbody>
-        <tfoot>
-          <tr>
-            <td>
-              <input
-                value="Add candidate"
-                type="button"
-                onClick={() => dispatch({type: 'addCandidate'})}
-              />
-            </td>
-          </tr>
-        </tfoot>
+        <thead>{tableHeaderRow}</thead>
+        <tbody>{tableBodyRows}</tbody>
       </table>
-      <input
-        type="button"
-        value="Submit"
-        onClick={() => {
-          const ballots = voterBallotPairs.map(([, ballot]) => ballot);
-          const electionResult = runElection(ballots);
-          dispatch({type: 'setElectionResult', electionResult});
-        }}
-      />
-      {electionResult}
+      <div>
+        <input value="Add Person" onClick={addPerson} type="button" />
+        <input value="Add Book" onClick={addBook} type="button" />
+        <input value="Submit" onClick={onSubmit} type="button" />
+      </div>
+      <div>{electionState}</div>
     </div>
   );
 };
 
 export default App;
 
-type TableBodyCellProps = {
-  state: AppState;
-  dispatch: React.Dispatch<Action>;
-  voter: VoterName;
-  candidate: CandidateName;
+type WithHoverIconProps = {
+  children: JSX.Element;
+  onClick?: () => void;
 };
-const TableBodyCell: React.FC<TableBodyCellProps> = props => {
-  const {
-    state: {editState, voterBallotPairs},
-    dispatch,
-    voter,
-    candidate,
-  } = props;
-  const [autoFocus, setAutoFocus] = useState<boolean>(false);
-  // TODO: utility function getBallot(state, 'voter')
-  const [, ballot] = voterBallotPairs.find(([v]) => v === voter)!;
-  let content;
-  if (
-    editState &&
-    editState.type === 'editBallot' &&
-    editState.voter === voter
-  ) {
-    content = (
-      <input
-        autoFocus={autoFocus}
-        value={editState.tempBallot[candidate]}
-        onChange={e =>
-          dispatch({
-            type: 'setTempBallot',
-            candidate,
-            value: e.target.value,
-          })
-        }
-        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
-      />
-    );
-  } else {
-    content = String(ballot[candidate]);
-    if (autoFocus) {
-      // TODO: this is disgusting. You should feel bad
-      setAutoFocus(false);
-    }
-  }
-  return (
-    <div onClick={e => dispatch({type: 'editBallot', voter})}>{content}</div>
-  );
-};
+const WithHoverIcon: React.FC<WithHoverIconProps> = props => {
+  const {children, onClick} = props;
+  const child = React.Children.only(children);
+  const [childRef, setChildRef] = useState<Element | null>(null);
 
-type VoterHeaderCellProps = {
-  state: AppState;
-  dispatch: React.Dispatch<Action>;
-  voter: VoterName;
-};
-const VoterHeaderCell: React.FC<VoterHeaderCellProps> = props => {
-  const {
-    state: {editState},
-    dispatch,
-    voter,
-  } = props;
-  let content;
-  if (
-    editState &&
-    editState.type === 'editVoterName' &&
-    editState.oldName === voter
-  ) {
-    content = (
-      <input
-        autoFocus
-        value={editState.newName}
-        onChange={e =>
-          dispatch({
-            type: 'changeVoterName',
-            value: e.target.value,
-          })
-        }
-        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
-      />
-    );
-  } else {
-    content = voter;
-  }
-  return (
-    <div onClick={() => dispatch({type: 'editVoterName', voter})}>
-      {content}
-    </div>
-  );
-};
+  const [mouseOverChild, setMouseOverChild] = useState<boolean>(false);
+  const [mouseOverIcon, setMouseOverIcon] = useState<boolean>(false);
+  const iconVisible = mouseOverChild || mouseOverIcon;
 
-type CandidateNameCellProps = {
-  state: AppState;
-  dispatch: React.Dispatch<Action>;
-  candidate: CandidateName;
-};
-const CandidateNameCell: React.FC<CandidateNameCellProps> = props => {
-  const {
-    state: {editState},
-    dispatch,
-    candidate,
-  } = props;
-  let content;
-  if (
-    editState &&
-    editState.type === 'editCandidateName' &&
-    editState.oldName === candidate
-  ) {
-    content = (
-      <input
-        autoFocus
-        value={editState.newName}
-        onChange={e =>
-          dispatch({
-            type: 'changeCandidateName',
-            value: e.target.value,
-          })
-        }
-        onKeyDown={e => e.keyCode === 13 && dispatch({type: 'commitEditState'})}
-      />
-    );
-  } else {
-    content = candidate;
-  }
+  const icon = childRef && (
+    <img
+      src="minus-icon.png"
+      alt="no img"
+      style={{
+        position: 'absolute',
+        // I think accessing window attributes in render is a no no
+        top: window.scrollY + childRef.getBoundingClientRect().top - 6,
+        left: window.scrollX + childRef.getBoundingClientRect().left - 6,
+        width: '12px',
+        height: '12px',
+        display: iconVisible ? 'block' : 'none',
+      }}
+      onMouseOver={() => setMouseOverIcon(true)}
+      onMouseLeave={() => setMouseOverIcon(false)}
+      onClick={onClick}
+    />
+  );
+
+  const elm = React.cloneElement(child, {
+    onMouseOver: () => setMouseOverChild(true),
+    onMouseLeave: () => setMouseOverChild(false),
+    ref: (r: Element | null) => setChildRef(r),
+  });
+
   return (
-    <div onClick={() => dispatch({type: 'editCandidateName', candidate})}>
-      {content}
-    </div>
+    <>
+      {elm}
+      {icon}
+    </>
   );
 };
