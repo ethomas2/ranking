@@ -1,4 +1,4 @@
-export function range(n: number) {
+export function range(n: number): number[] {
   let arr = [];
   for (var i = 0; i < n; i++) {
     arr.push(i);

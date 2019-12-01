@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {removeRow, removeCol, setArr, setArr2d, range} from './arrayUtils';
+import {runElection, Ballot} from './instantRunoff';
 import './App.css';
 
 const defaultTableData = [
@@ -28,8 +29,7 @@ const App: React.FC = () => {
   const [tableLeftColData, setTableLeftCol] = useState<string[]>(
     defaultTableLeftCol,
   );
-
-  console.log(tableBodyData);
+  const [electionState, setElectionState] = useState<string[] | null>(null);
 
   const tableHeaderRow = (
     <tr>
@@ -104,7 +104,18 @@ const App: React.FC = () => {
       tableBodyData.concat([range(npeople).map(() => `${nbooks + 1}`)]),
     );
     setTableLeftCol(tableLeftColData.concat([`Book - ${nbooks + 1}`]));
-    // console.log(tableBodyData)
+  };
+
+  const onSubmit = () => {
+    const ballots: Ballot[] = range(tableHeaderData.length).map(() => ({}));
+    for (var rowIdx = 0; rowIdx < tableLeftColData.length; rowIdx++) {
+      for (var colIdx = 0; colIdx < tableHeaderData.length; colIdx++) {
+        ballots[colIdx][tableLeftColData[rowIdx]] = Number(
+          tableBodyData[rowIdx][colIdx],
+        );
+      }
+    }
+    setElectionState(runElection(ballots));
   };
 
   return (
@@ -119,7 +130,9 @@ const App: React.FC = () => {
       <div>
         <input value="Add Person" onClick={addPerson} type="button" />
         <input value="Add Book" onClick={addBook} type="button" />
+        <input value="Submit" onClick={onSubmit} type="button" />
       </div>
+      <div>{electionState}</div>
     </div>
   );
 };
