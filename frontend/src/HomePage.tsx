@@ -8,7 +8,7 @@ function req<T>(url: string, options: RequestInit): Promise<T> {
 const HomePage: React.FC = () => {
   const history = useHistory();
   const createNew = async () => {
-    const result = await req<{id: number}>('http://localhost:8000/election', {
+    const result = await req<{id: number}>('http://localhost:8000/elections', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
