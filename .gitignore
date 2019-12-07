@@ -36,10 +36,13 @@ Cargo.lock
 # python
 .mypy_cache
 venv
+__pycache__
 
 # my stuff
 tasks.md
 frontend/README.md
 README.md
 .envrc
-elections
+db
+local.vim
+Session.vim

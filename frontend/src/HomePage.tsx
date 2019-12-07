@@ -5,14 +5,15 @@ import {req} from './utils';
 
 const HomePage: React.FC = () => {
   const history = useHistory();
-  const createNew = async () => {
-    const result = await req<{id: number}>('http://localhost:8000/elections', {
+  const createNew = () => {
+    req<{id: number}>('http://localhost:8000/elections', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
       },
-    });
-    history.push(`/election/${result.id}`);
+    })
+      .then(result => history.push(`/election/${result.id}`))
+      .catch(err => alert(err));
   };
   return <input type="button" value="Create New" onClick={createNew} />;
 };

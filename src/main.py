@@ -1,54 +1,69 @@
+import traceback
+import sys
 import itertools
 import os
 import json
 import functools
 
-from flask import Flask
-import flask
-app = Flask(__name__)
+from flask import Flask, request, Response
+from flask_cors import CORS
 
-ELECTIONS_DIR = 'elections'
+app = Flask('elections')
+CORS(app, resources={r"*": {"origins": "*"}})
+
+DB_DIR = 'db'
 
 
-def flask_wrapper(f):
+def wrap_response(f):
     @functools.wraps(f)
     def g(*args, **kwargs):
         try:
-            data = f(*args, **kwargs)
-            resp = flask.Response(json.dumps(data))
+            retval = f(*args, **kwargs)
+            resp = Response(
+                json.dumps(retval)) if retval else Response(json.dumps({}))
         except Exception as e:
-            resp = flask.Response(json.dumps({
+            traceback.print_exc(file=sys.stderr)
+            resp = Response(json.dumps({
                 'error': str(e),
             }), status=500)
 
-        resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
     return g
 
 
 @app.route("/election/<election_id>", methods=['GET'])
-@flask_wrapper
+@wrap_response
 def get_election(election_id):
-    with open(f'{ELECTIONS_DIR}/{election_id}') as f:
-        data = f.read().strip()
-        return json.loads(data)
+    with open(f'{DB_DIR}/{election_id}') as f:
+        return json.loads(f.read().strip())
 
 
 @app.route("/elections", methods=['POST'])
-@flask_wrapper
+@wrap_response
 def new_election():
     try:
-        os.mkdir(ELECTIONS_DIR)
+        os.mkdir(DB_DIR)
     except FileExistsError:
         pass
-    existing_ids = set(map(int, os.listdir(ELECTIONS_DIR)))
+    existing_ids = set(map(int, os.listdir(DB_DIR)))
     next_election_id = str(next(
         (i for i in itertools.count() if i not in existing_ids)))
-    next_election_path = os.path.join(ELECTIONS_DIR, next_election_id)
+    next_election_path = os.path.join(DB_DIR, next_election_id)
     with open(next_election_path, 'w') as f:
-        print(json.dumps({'body': [], 'header': [], 'leftCol': []}), file=f)
+        f.write(json.dumps({'body': [], 'header': [], 'leftCol': []}))
 
-    return {'id': next_election_path}
+    return {'id': next_election_id}
+
+
+@app.route("/election/<election_id>", methods=['PUT'])
+@wrap_response
+def update_election(election_id):
+    try:
+        os.mkdir(DB_DIR)
+    except FileExistsError:
+        pass
+    with open(f'{DB_DIR}/{election_id}', 'w') as f:
+        f.write(request.data.decode('utf-8'))
 
 
 if __name__ == "__main__":

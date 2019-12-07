@@ -15,13 +15,36 @@ const MainPage: React.FC = props => {
   const [electionState, setElectionState] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  type RespType = {
+  useEffect(() => {
+    // TODO: debounce this and maybe move to it's own hook
+    if (
+      tableBodyData === null ||
+      tableHeaderData === null ||
+      tableLeftColData === null
+    ) {
+      // When state first loads everything will be null
+      return;
+    }
+    req(`http://localhost:8000/election/${id}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        body: tableBodyData,
+        header: tableHeaderData,
+        leftCol: tableLeftColData,
+      }),
+    }).catch(err => console.log(err));
+  }, [tableBodyData, tableHeaderData, tableLeftColData]);
+
+  type GetElectionRespType = {
     body: string[][];
     header: string[];
     leftCol: string[];
   };
   useEffect(() => {
-    req<RespType>(`http://localhost:8000/election/${id}`)
+    req<GetElectionRespType>(`http://localhost:8000/election/${id}`)
       .then(data => {
         const {body, header, leftCol} = data;
         setTableData(body);
