@@ -22,7 +22,8 @@ const MainPage: React.FC = props => {
       tableHeaderData === null ||
       tableLeftColData === null
     ) {
-      // When state first loads everything will be null
+      // When state first loads everything will be null. Don't save that to
+      // backend
       return;
     }
     req(`http://localhost:8000/election/${id}`, {
