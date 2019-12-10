@@ -1,5 +1,5 @@
 FROM node:10.15.3
-WORKDIR frontend
+WORKDIR /code
 COPY . .
 RUN yarn install
 RUN yarn run build
