@@ -67,4 +67,5 @@ def update_election(election_id):
 
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    # This configuration doesn't control prod port/host.
+    app.run(port=8000, host='0.0.0.0')
