@@ -41,7 +41,6 @@ __pycache__
 # my stuff
 tasks.md
 frontend/README.md
-README.md
 .envrc
 db
 local.vim
