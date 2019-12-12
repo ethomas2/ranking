@@ -1,0 +1,2 @@
+#!/bin/bash
+ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE
