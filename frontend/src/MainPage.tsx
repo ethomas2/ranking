@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {removeRow, removeCol, setArr, setArr2d, range, req} from './utils';
-import {runElection, Ballot} from './instantRunoff';
+import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
 
@@ -12,7 +12,12 @@ const MainPage: React.FC = props => {
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
   const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
   const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
-  const [electionState, setElectionState] = useState<string[] | null>(null);
+  type RoundResult = {
+    data: number[][];
+    leftCol: string[];
+  };
+  const [roundResults, setRoundResults] = useState<RoundResult[] | null>(null);
+  const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,7 +42,7 @@ const MainPage: React.FC = props => {
         leftCol: tableLeftColData,
       }),
     }).catch(err => console.log(err));
-  }, [tableBodyData, tableHeaderData, tableLeftColData]);
+  }, [tableBodyData, tableHeaderData, tableLeftColData, id]);
 
   type GetElectionRespType = {
     body: string[][];
@@ -145,15 +150,35 @@ const MainPage: React.FC = props => {
   };
 
   const onSubmit = () => {
-    const ballots: Ballot[] = range(tableHeaderData.length).map(() => ({}));
-    for (var rowIdx = 0; rowIdx < tableLeftColData.length; rowIdx++) {
-      for (var colIdx = 0; colIdx < tableHeaderData.length; colIdx++) {
-        ballots[colIdx][tableLeftColData[rowIdx]] = Number(
-          tableBodyData[rowIdx][colIdx],
-        );
+    // TODO: validate data. Needs to be all numbers and all in range [1, N]
+
+    const results: RoundResult[] = [
+      {
+        leftCol: tableLeftColData,
+        data: tableBodyData.map(row => row.map(Number)),
+      },
+    ];
+    let winners: string[] = ['No winners'];
+
+    while (true) {
+      const lastResult = results[results.length - 1];
+      const newResult = iteration(lastResult.leftCol, lastResult.data);
+      if (newResult.type === 'WINNER') {
+        winners = [newResult.winner];
+        break;
+      } else if (newResult.type === 'TIE') {
+        winners = newResult.winners;
+        break;
+      } else {
+        results.push({
+          leftCol: newResult.newCandidates,
+          data: newResult.newData,
+        });
       }
     }
-    setElectionState(runElection(ballots));
+
+    setRoundResults(results);
+    setElectionWinners(winners);
   };
 
   return (
@@ -167,9 +192,57 @@ const MainPage: React.FC = props => {
         <input value="Add Book" onClick={addBook} type="button" />
         <input value="Submit" onClick={onSubmit} type="button" />
       </div>
-      <div>{electionState}</div>
+      {roundResults &&
+        roundResults.map(roundResult => (
+          <Round
+            leftCol={roundResult.leftCol}
+            data={roundResult.data}
+            header={tableHeaderData}
+          />
+        ))}
+      {electionWinners && (
+        <>
+          <div> Winners: </div>
+          {electionWinners.map(winner => (
+            <div>{winner}</div>
+          ))}
+        </>
+      )}
     </>
   );
 };
 
 export default MainPage;
+
+type RoundProps = {
+  leftCol: string[];
+  data: number[][];
+  header: string[];
+};
+const Round: React.FC<RoundProps> = props => {
+  const {leftCol, data, header} = props;
+  const tableHeaderRow = (
+    <tr>
+      <th />
+      {header.map((item, idx) => (
+        <th key={`header-${idx}`}>{item}</th>
+      ))}
+    </tr>
+  );
+
+  const tableBodyRows = data.map((row, rowIdx) => (
+    <tr key={`row-${rowIdx}`}>
+      <td>{leftCol[rowIdx]}</td>
+      {row.map(item => (
+        <td>{item}</td>
+      ))}
+    </tr>
+  ));
+
+  return (
+    <table>
+      <thead>{tableHeaderRow}</thead>
+      <tbody>{tableBodyRows}</tbody>
+    </table>
+  );
+};
