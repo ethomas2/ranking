@@ -109,7 +109,6 @@ const MainPage: React.FC = props => {
             setTableLeftCol(removeRow(tableLeftColData, rowIdx));
           }}>
           <textarea
-            tabIndex={0}
             value={tableLeftColData[rowIdx]}
             onChange={e =>
               setTableLeftCol(setArr(tableLeftColData, rowIdx, e.target.value))
@@ -120,7 +119,7 @@ const MainPage: React.FC = props => {
       {row.map((item, colIdx) => (
         <td key={`cell-${rowIdx}-${colIdx}`}>
           <input
-            tabIndex={colIdx + 1}
+            tabIndex={colIdx * tableLeftColData.length + rowIdx + 1}
             size={1}
             type="text"
             value={item}
@@ -129,6 +128,16 @@ const MainPage: React.FC = props => {
                 setArr2d(tableBodyData, rowIdx, colIdx, e.target.value),
               )
             }
+            onKeyDown={e => {
+              // quite the hack
+              if (e.key === 'Enter') {
+                const myTabIdx = colIdx * tableLeftColData.length + rowIdx + 1;
+                const nextElement = document.querySelector(
+                  `input[tabIndex="${myTabIdx + 1}"]`,
+                );
+                nextElement && (nextElement as any).focus();
+              }
+            }}
           />
         </td>
       ))}
