@@ -109,6 +109,7 @@ const MainPage: React.FC = props => {
             setTableLeftCol(removeRow(tableLeftColData, rowIdx));
           }}>
           <textarea
+            tabIndex={0}
             value={tableLeftColData[rowIdx]}
             onChange={e =>
               setTableLeftCol(setArr(tableLeftColData, rowIdx, e.target.value))
@@ -119,6 +120,7 @@ const MainPage: React.FC = props => {
       {row.map((item, colIdx) => (
         <td key={`cell-${rowIdx}-${colIdx}`}>
           <input
+            tabIndex={colIdx + 1}
             size={1}
             type="text"
             value={item}
