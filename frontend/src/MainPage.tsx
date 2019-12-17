@@ -226,14 +226,16 @@ const IterationTable: React.FC<IterationTableProps> = props => {
     <tr>
       <th />
       {header.map((item, idx) => (
-        <th key={`header-${idx}`}>{item}</th>
+        <th className="IterationTable__header-cell" key={`header-${idx}`}>
+          {item}
+        </th>
       ))}
     </tr>
   );
 
   const tableBodyRows = data.map((row, rowIdx) => (
     <tr key={`row-${rowIdx}`}>
-      <td>{leftCol[rowIdx]}</td>
+      <td className="IterationTable__body-cell">{leftCol[rowIdx]}</td>
       {row.map(item => (
         <td>{item}</td>
       ))}

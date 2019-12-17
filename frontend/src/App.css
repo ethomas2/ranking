@@ -20,6 +20,18 @@
   border-bottom: 1px solid #66666666;
 }
 
+.IterationTable {
+  margin-top: 30px;
+}
+
+.IterationTable__header-cell {
+  padding: 5px 10px;
+}
+
+.IterationTable__body-cell {
+  padding: 5px 20px;
+}
+
 /* This is very not BEM. Do you care? */
 table {
   border-collapse: collapse;
