@@ -115,11 +115,10 @@ const MainPage: React.FC = props => {
         </WithHoverIcon>
       </td>
       {row.map((item, colIdx) => (
-        <td key={`cell-${rowIdx}-${colIdx}`} className="Table__td-cell">
+        <td key={`cell-${rowIdx}-${colIdx}`}>
           <input
             size={1}
             type="text"
-            className="Table__input-cell"
             value={item}
             onChange={e =>
               setTableData(

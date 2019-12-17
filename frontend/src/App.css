@@ -1,17 +1,21 @@
 .App {
+  display: flex;
   height: 100vh;
-  overflow-y: auto;
 
   margin: 50px 50px;
+}
+
+.App__gutter {
+  flex: 1;
+}
+
+.App__center-column {
+  flex: 2;
 }
 
 .App__title-container {
   display: flex;
   justify-content: center;
-  width: 100%;
-}
-
-.App__title {
   padding-bottom: 5px;
   border-bottom: 1px solid #66666666;
 }
