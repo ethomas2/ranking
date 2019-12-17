@@ -12,11 +12,13 @@ const MainPage: React.FC = props => {
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
   const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
   const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
-  type RoundResult = {
+  type IterationResult = {
     data: number[][];
     leftCol: string[];
   };
-  const [roundResults, setRoundResults] = useState<RoundResult[] | null>(null);
+  const [iterationResults, setIterationResults] = useState<
+    IterationResult[] | null
+  >(null);
   const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -151,7 +153,7 @@ const MainPage: React.FC = props => {
   const onSubmit = () => {
     // TODO: validate data. Needs to be all numbers and all in range [1, N]
 
-    const results: RoundResult[] = [
+    const results: IterationResult[] = [
       {
         leftCol: tableLeftColData,
         data: tableBodyData.map(row => row.map(Number)),
@@ -176,7 +178,7 @@ const MainPage: React.FC = props => {
       }
     }
 
-    setRoundResults(results);
+    setIterationResults(results);
     setElectionWinners(winners);
   };
 
@@ -191,9 +193,9 @@ const MainPage: React.FC = props => {
         <input value="Add Book" onClick={addBook} type="button" />
         <input value="Submit" onClick={onSubmit} type="button" />
       </div>
-      {roundResults &&
-        roundResults.map(roundResult => (
-          <Round
+      {iterationResults &&
+        iterationResults.map(roundResult => (
+          <IterationTable
             leftCol={roundResult.leftCol}
             data={roundResult.data}
             header={tableHeaderData}
@@ -213,12 +215,12 @@ const MainPage: React.FC = props => {
 
 export default MainPage;
 
-type RoundProps = {
+type IterationTableProps = {
   leftCol: string[];
   data: number[][];
   header: string[];
 };
-const Round: React.FC<RoundProps> = props => {
+const IterationTable: React.FC<IterationTableProps> = props => {
   const {leftCol, data, header} = props;
   const tableHeaderRow = (
     <tr>
@@ -239,7 +241,7 @@ const Round: React.FC<RoundProps> = props => {
   ));
 
   return (
-    <table>
+    <table className="IterationTable">
       <thead>{tableHeaderRow}</thead>
       <tbody>{tableBodyRows}</tbody>
     </table>
