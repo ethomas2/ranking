@@ -1,16 +1,11 @@
 #!/bin/bash
 set -euxo pipefail
 
-# copy new version of code
-git ls-files | tar -zc -T - -f -  | ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
-rm -rf ~/code;
-mkdir ~/code;
-cd ~/code;
-tar -xzf -
-"""
 
-ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
-cd ~/code;
-docker-compose -f docker-compose.prod.yaml build && ls &&
-  (nohup docker-compose -f docker-compose.prod.yaml up -d 2>&1 log.log &)
-""" 2>&1
+# copy new version of code
+cat docker-compose.prod.yaml | ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
+cat - > /tmp/docker-compose.prod.yaml
+docker-compose -f /tmp/docker-compose.prod.yaml pull
+docker-compose -f /tmp/docker-compose.prod.yaml down
+docker-compose -f /tmp/docker-compose.prod.yaml up -d
+"""
