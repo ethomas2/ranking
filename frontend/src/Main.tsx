@@ -20,31 +20,11 @@ const Main: React.FC = props => {
     IterationResult[] | null
   >(null);
   const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // TODO: debounce this and maybe move to it's own hook
-    if (
-      tableBodyData === null ||
-      tableHeaderData === null ||
-      tableLeftColData === null
-    ) {
-      // When state first loads everything will be null. Don't save that to
-      // backend
-      return;
-    }
-    req(`http://localhost:8000/election/${id}`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        body: tableBodyData,
-        header: tableHeaderData,
-        leftCol: tableLeftColData,
-      }),
-    }).catch(err => console.log(err));
-  }, [tableBodyData, tableHeaderData, tableLeftColData, id]);
+  type LoadState =
+    | {type: 'success'}
+    | {type: 'pending'}
+    | {type: 'error'; msg: string};
+  const [loadState, setLoadState] = useState<LoadState>({type: 'pending'});
 
   type GetElectionRespType = {
     body: string[][];
@@ -58,14 +38,49 @@ const Main: React.FC = props => {
         setTableData(body);
         setTableHeader(header);
         setTableLeftCol(leftCol);
+        setLoadState({type: 'success'});
       })
-      .catch(error => {
-        setError(`${error}`);
+      .catch(err => {
+        setLoadState({type: 'error', msg: `${err}`});
       });
   }, [id]);
 
-  if (error !== null) {
-    return <span>`Error: ${error}`</span>;
+  useEffect(() => {
+    // TODO: debounce this and maybe move to it's own hook
+
+    if (loadState.type !== 'success') {
+      // Important so that we don't launch a PUT and overwrite data when we
+      // switch from one election to another
+      return;
+    }
+
+    if (
+      tableBodyData === null ||
+      tableHeaderData === null ||
+      tableLeftColData === null
+    ) {
+      // When state first loads everything will be null. Don't save that to
+      // backend. This shouldn't be necessary since we've already checked for
+      // loadState === success, but it makes me feel better, and also makes
+      // sure whe know the types of these things are non-null further
+      return;
+    }
+
+    req(`http://localhost:8000/election/${id}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        body: tableBodyData,
+        header: tableHeaderData,
+        leftCol: tableLeftColData,
+      }),
+    }).catch(err => console.log(err));
+  }, [tableBodyData, tableHeaderData, tableLeftColData, id]);
+
+  if (loadState.type === 'error') {
+    return <span>`error: ${loadState}`</span>;
   }
 
   if (
@@ -88,7 +103,7 @@ const Main: React.FC = props => {
             }}>
             <input
               type="text"
-              size={4}
+              size={6}
               value={item}
               onChange={e =>
                 setTableHeader(setArr(tableHeaderData, i, e.target.value))

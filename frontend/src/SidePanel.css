@@ -1,0 +1,24 @@
+.SidePanel__card {
+  padding: 10px 0;
+  border-bottom: 1px solid #666666;
+  width: 50%;
+}
+
+.SidePanel__title {
+  /* Material ui body 1 */
+  font-size: 1rem;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.00938em;
+}
+
+.SidePanel__date {
+  /* Material ui body 2 */
+  font-size: 0.875rem;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-weight: 400;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  color: #666666;
+}
