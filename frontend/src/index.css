@@ -1,12 +1,20 @@
+input,
+textarea,
 body {
   margin: 0;
+  font-family: 'Roboto';
+
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* <code> font family is never actually used in the app. create-react-app just
+ * stuck it here and for some reason I don't want to delete it
+ */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

@@ -45,12 +45,6 @@ tbody tr {
   height: 30px;
 }
 
-input {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-}
-
 input[type='text'],
 input[type='textarea'],
 textarea {
