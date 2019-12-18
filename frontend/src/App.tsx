@@ -1,5 +1,5 @@
 import React from 'react';
-import MainPage from './MainPage';
+import Main from './Main';
 import HomePage from './HomePage';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 
@@ -14,7 +14,7 @@ const App: React.FC = () => {
         </h2>
         <Router>
           <Route path="/" exact component={HomePage} />
-          <Route path="/election/:id" component={MainPage} />
+          <Route path="/election/:id" component={Main} />
         </Router>
       </div>
 

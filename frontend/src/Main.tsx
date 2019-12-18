@@ -6,7 +6,7 @@ import WithHoverIcon from './WithHoverIcon';
 import './App.css';
 
 // TODO: rename to election
-const MainPage: React.FC = props => {
+const Main: React.FC = props => {
   const {id} = useParams();
 
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
@@ -224,7 +224,7 @@ const MainPage: React.FC = props => {
   );
 };
 
-export default MainPage;
+export default Main;
 
 type IterationTableProps = {
   leftCol: string[];
