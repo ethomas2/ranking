@@ -12,5 +12,5 @@ tar -xzf -
 ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
 cd ~/code;
 docker-compose -f docker-compose.prod.yaml build && ls &&
-nohup docker-compose -f docker-compose.prod.yaml up -d 2>&1 log.log &
-"""
+  (nohup docker-compose -f docker-compose.prod.yaml up -d 2>&1 log.log &)
+""" 2>&1
