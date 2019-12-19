@@ -8,6 +8,9 @@
 .SidePanel__card:hover {
   background-color: #DDDDDD;
 }
+.SidePanel__card--selected {
+  font-weight: bold;
+}
 
 .SidePanel__title {
   /* Material ui body 1 */

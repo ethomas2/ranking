@@ -5,8 +5,10 @@ import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
 
-// TODO: rename to election
-const Main: React.FC = props => {
+type MainProps = {
+  id: number;
+};
+const Main: React.FC<MainProps> = props => {
   const {id} = useParams();
 
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);

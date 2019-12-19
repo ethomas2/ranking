@@ -9,7 +9,7 @@ const App: React.FC = () => {
     <Router>
       <div className="App">
         <div className="App__gutter">
-          <SidePanel />
+          <Route path="/election/:id" component={SidePanel} />
         </div>
 
         <div className="App__center-column">
