@@ -2,6 +2,11 @@
   padding: 10px 0;
   border-bottom: 1px solid #666666;
   width: 50%;
+  cursor: pointer;
+}
+
+.SidePanel__card:hover {
+  background-color: #DDDDDD;
 }
 
 .SidePanel__title {

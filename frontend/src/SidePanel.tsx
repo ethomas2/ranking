@@ -10,8 +10,8 @@ type Card = {
 
 const SidePanel: React.FC = () => {
   const cards: Card[] = [
-    {id: 0, title: 'title 1', date: new Date()},
-    {id: 1, title: 'title 1', date: new Date()},
+    {id: 0, title: 'Title 0', date: new Date()},
+    {id: 1, title: 'Title 1', date: new Date()},
   ];
   const history = useHistory();
   const chooseCard = (cardId: number) => {

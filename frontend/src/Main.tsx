@@ -12,6 +12,7 @@ const Main: React.FC = props => {
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
   const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
   const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
+
   type IterationResult = {
     data: number[][];
     leftCol: string[];
@@ -19,6 +20,7 @@ const Main: React.FC = props => {
   const [iterationResults, setIterationResults] = useState<
     IterationResult[] | null
   >(null);
+
   const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
   type LoadState =
     | {type: 'success'}
