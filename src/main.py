@@ -33,14 +33,30 @@ def wrap_response(f):
 
 @app.route("/election/<election_id>", methods=['GET'])
 @wrap_response
-def get_election(election_id):
+def get_election(election_id: str):
+    return _get_election(election_id)
+
+
+def _get_election(election_id: str):
     with open(f'{DB_DIR}/{election_id}') as f:
-        return json.loads(f.read().strip())
+        data = json.loads(f.read().strip())
+        data['id'] = election_id
+        return data
 
 
-@app.route("/elections", methods=['POST'])
+@app.route("/elections", methods=['POST', 'GET'])
 @wrap_response
-def new_election():
+def elections():
+    if request.method == 'POST':
+        return _new_election()
+    elif request.method == 'GET':
+        return _get_all_elections()
+    else:
+        # TODO: return 405
+        pass
+
+
+def _new_election():
     try:
         os.mkdir(DB_DIR)
     except FileExistsError:
@@ -53,6 +69,15 @@ def new_election():
         f.write(json.dumps({'body': [], 'header': [], 'leftCol': []}))
 
     return {'id': next_election_id}
+
+
+def _get_all_elections():
+    filenames = os.listdir(DB_DIR)
+    return {
+        'elections': [
+            _get_election(fname) for fname in filenames
+        ]
+    }
 
 
 @app.route("/election/<election_id>", methods=['PUT'])
