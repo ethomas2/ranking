@@ -28,9 +28,6 @@ const SidePanel: React.FC = () => {
       setCards(cards);
     });
   }, [urlId]);
-  if (urlId === undefined) {
-    return null;
-  }
 
   const chooseCard = (cardId: string) => {
     history.push(`/election/${cardId}`);
