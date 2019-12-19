@@ -4,6 +4,7 @@ import {removeRow, removeCol, setArr, setArr2d, range, req} from './utils';
 import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
+import {ElectionResponseType} from './types';
 
 type MainProps = {
   id: number;
@@ -30,13 +31,8 @@ const Main: React.FC<MainProps> = props => {
     | {type: 'error'; msg: string};
   const [loadState, setLoadState] = useState<LoadState>({type: 'pending'});
 
-  type GetElectionRespType = {
-    body: string[][];
-    header: string[];
-    leftCol: string[];
-  };
   useEffect(() => {
-    req<GetElectionRespType>(`http://localhost:8000/election/${id}`)
+    req<ElectionResponseType>(`http://localhost:8000/election/${id}`)
       .then(data => {
         const {body, header, leftCol} = data;
         setTableData(body);

@@ -37,13 +37,6 @@ def get_election(election_id: str):
     return _get_election(election_id)
 
 
-def _get_election(election_id: str):
-    with open(f'{DB_DIR}/{election_id}') as f:
-        data = json.loads(f.read().strip())
-        data['id'] = election_id
-        return data
-
-
 @app.route("/elections", methods=['POST', 'GET'])
 @wrap_response
 def elections():
@@ -66,7 +59,10 @@ def _new_election():
         (i for i in itertools.count() if i not in existing_ids)))
     next_election_path = os.path.join(DB_DIR, next_election_id)
     with open(next_election_path, 'w') as f:
-        f.write(json.dumps({'body': [], 'header': [], 'leftCol': []}))
+        f.write(json.dumps({
+            'body': [], 'header': [], 'leftCol': [],
+            'title': f'My Title - {next_election_id}'
+        }))
 
     return {'id': next_election_id}
 
@@ -80,6 +76,13 @@ def _get_all_elections():
     }
 
 
+def _get_election(election_id: str):
+    with open(f'{DB_DIR}/{election_id}') as f:
+        data = json.loads(f.read().strip())
+        data['id'] = election_id
+        return data
+
+
 @app.route("/election/<election_id>", methods=['PUT'])
 @wrap_response
 def update_election(election_id):
@@ -87,8 +90,14 @@ def update_election(election_id):
         os.mkdir(DB_DIR)
     except FileExistsError:
         pass
+
+    updates = json.loads(request.data.decode('utf-8'))
+    with open(f'{DB_DIR}/{election_id}', 'r') as f:
+        current_data = json.loads(f.read().strip())
+
+    newData = {**current_data, **updates}
     with open(f'{DB_DIR}/{election_id}', 'w') as f:
-        f.write(request.data.decode('utf-8'))
+        f.write(json.dumps(newData))
 
 
 if __name__ == "__main__":

@@ -1,25 +1,38 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import './SidePanel.css';
 import {useHistory, useParams} from 'react-router-dom';
+import {req} from './utils';
+import {ElectionResponseType} from './types';
 
 const SidePanel: React.FC = () => {
   type Card = {
-    id: number;
+    id: string;
     title: string;
     date: Date;
   };
-  const cards: Card[] = [
-    {id: 0, title: 'Title 0', date: new Date()},
-    {id: 1, title: 'Title 1', date: new Date()},
-  ];
+
+  const [cards, setCards] = useState<Card[]>([]);
 
   const history = useHistory();
   const {id: urlId} = useParams();
+  useEffect(() => {
+    req<{elections: ElectionResponseType[]}>(
+      `http://localhost:8000/elections`,
+    ).then(data => {
+      const {elections} = data;
+      const cards: Card[] = elections.map(({id, title}) => ({
+        id,
+        title,
+        date: new Date(),
+      }));
+      setCards(cards);
+    });
+  }, [urlId]);
   if (urlId === undefined) {
     return null;
   }
 
-  const chooseCard = (cardId: number) => {
+  const chooseCard = (cardId: string) => {
     history.push(`/election/${cardId}`);
   };
 
@@ -28,13 +41,13 @@ const SidePanel: React.FC = () => {
       {cards.map(({id, title, date}, idx) => {
         const className =
           'SidePanel__card' +
-          (Number(urlId) === id ? ' SidePanel__card--selected' : '');
+          (urlId === id ? ' SidePanel__card--selected' : '');
         return (
           <div
             key={`side-panel-card-${idx}`}
             className={className}
             onClick={() => chooseCard(id)}>
-            <div>{title}</div>
+            <div>{title || 'No Title'}</div>
             <div>{date.toLocaleDateString()}</div>
           </div>
         );
