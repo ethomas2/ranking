@@ -5,6 +5,7 @@ import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
 import {ElectionResponseType} from './types';
+import _ from 'lodash';
 
 type MainProps = {
   id: number;
@@ -30,6 +31,9 @@ const Main: React.FC<MainProps> = props => {
     | {type: 'pending'}
     | {type: 'error'; msg: string};
   const [loadState, setLoadState] = useState<LoadState>({type: 'pending'});
+
+  type ValidationState = string | null;
+  const [validationState, setValidationState] = useState<ValidationState>(null);
 
   useEffect(() => {
     req<ElectionResponseType>(`http://localhost:8000/election/${id}`)
@@ -176,13 +180,38 @@ const Main: React.FC<MainProps> = props => {
     setTableLeftCol(tableLeftColData.concat([`Book - ${nbooks + 1}`]));
   };
 
+  const validate = (): ValidationState => {
+    // each row must have exactly numbers 1 - n where n is length of table
+
+    const tableTranspose = _.unzip(tableBodyData);
+    const ncols = tableHeaderData.length;
+    const nrows = tableBodyData.length;
+    for (let colIdx = 0; colIdx < ncols; colIdx++) {
+      const column = tableTranspose[colIdx];
+      const colSet = new Set(
+        column.map(item => Number(item.trim())).filter(x => !Number.isNaN(x)),
+      );
+      if (!_.range(1, nrows + 1).every(x => colSet.has(x))) {
+        return `"${tableHeaderData[colIdx]}" must have each number 1-${nrows} exactly once`;
+      }
+    }
+    return null;
+  };
+
   const onSubmit = () => {
     // TODO: validate data. Needs to be all numbers and all in range [1, N]
+    const newValidationState = validate();
+    setValidationState(newValidationState);
+    if (newValidationState !== null) {
+      setIterationResults(null);
+      setElectionWinners(null);
+      return;
+    }
 
     const results: IterationResult[] = [
       {
         leftCol: tableLeftColData,
-        data: tableBodyData.map(row => row.map(Number)),
+        data: tableBodyData.map(row => row.map(item => Number(item.trim()))),
       },
     ];
     let winners: string[] = ['No winners'];
@@ -214,6 +243,9 @@ const Main: React.FC<MainProps> = props => {
         <thead>{tableHeaderRow}</thead>
         <tbody>{tableBodyRows}</tbody>
       </table>
+      {validationState && (
+        <span className="Main__validationMsg">{validationState}</span>
+      )}
       <div>
         <input value="Add Person" onClick={addPerson} type="button" />
         <input value="Add Book" onClick={addBook} type="button" />

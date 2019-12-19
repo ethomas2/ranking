@@ -20,6 +20,11 @@
   border-bottom: 1px solid #666666;
 }
 
+.Main__validationMsg {
+  color: red;
+  font-size: 12px;
+}
+
 .IterationTable {
   margin-top: 30px;
 }
