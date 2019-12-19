@@ -36,8 +36,20 @@ const SidePanel: React.FC = () => {
     history.push(`/election/${cardId}`);
   };
 
+  const createNew = () => {
+    req<{id: number}>('http://localhost:8000/elections', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+      .then(result => history.push(`/election/${result.id}`))
+      .catch(err => alert(err));
+  };
+
   return (
     <div>
+      <input type="button" value="Create New" onClick={createNew} />
       {cards.map(({id, title, date}, idx) => {
         const className =
           'SidePanel__card' +
