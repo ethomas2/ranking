@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {useParams} from 'react-router-dom';
 import {removeRow, removeCol, setArr, setArr2d, range, req} from './utils';
 import {iteration} from './instantRunoff';
@@ -49,39 +49,41 @@ const Main: React.FC<MainProps> = props => {
       });
   }, [id]);
 
-  useEffect(() => {
-    // TODO: debounce this and maybe move to it's own hook
+  useDebouncedEffect(
+    () => {
+      if (loadState.type !== 'success') {
+        // Important so that we don't launch a PUT and overwrite data when we
+        // switch from one election to another
+        return;
+      }
 
-    if (loadState.type !== 'success') {
-      // Important so that we don't launch a PUT and overwrite data when we
-      // switch from one election to another
-      return;
-    }
+      if (
+        tableBodyData === null ||
+        tableHeaderData === null ||
+        tableLeftColData === null
+      ) {
+        // When state first loads everything will be null. Don't save that to
+        // backend. This shouldn't be necessary since we've already checked for
+        // loadState === success, but it makes me feel better, and also makes
+        // sure whe know the types of these things are non-null further
+        return;
+      }
 
-    if (
-      tableBodyData === null ||
-      tableHeaderData === null ||
-      tableLeftColData === null
-    ) {
-      // When state first loads everything will be null. Don't save that to
-      // backend. This shouldn't be necessary since we've already checked for
-      // loadState === success, but it makes me feel better, and also makes
-      // sure whe know the types of these things are non-null further
-      return;
-    }
-
-    req(`http://localhost:8000/election/${id}`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        body: tableBodyData,
-        header: tableHeaderData,
-        leftCol: tableLeftColData,
-      }),
-    }).catch(err => console.log(err));
-  }, [tableBodyData, tableHeaderData, tableLeftColData, id]);
+      req(`http://localhost:8000/election/${id}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          body: tableBodyData,
+          header: tableHeaderData,
+          leftCol: tableLeftColData,
+        }),
+      }).catch(err => console.log(err));
+    },
+    2000,
+    [tableBodyData, tableHeaderData, tableLeftColData, id],
+  );
 
   if (loadState.type === 'error') {
     return <span>`error: ${loadState}`</span>;
@@ -272,6 +274,21 @@ const Main: React.FC<MainProps> = props => {
 };
 
 export default Main;
+
+function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
+  const lastTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      fn();
+      lastTimer.current = null;
+    }, wait);
+    lastTimer.current = timerId;
+    return () => {
+      // if the component unmounts before the effect occurs, cancel the effect
+      lastTimer.current && clearTimeout(lastTimer.current);
+    };
+  }, [...args, wait]);
+}
 
 type IterationTableProps = {
   leftCol: string[];
