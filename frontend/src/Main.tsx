@@ -8,9 +8,11 @@ import {ElectionResponseType} from './types';
 import _ from 'lodash';
 
 type MainProps = {
-  id: number;
+  setSavingIndicator: (isSaving: boolean) => void;
 };
 const Main: React.FC<MainProps> = props => {
+  const {setSavingIndicator} = props;
+
   const {id} = useParams();
 
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
@@ -49,7 +51,7 @@ const Main: React.FC<MainProps> = props => {
       });
   }, [id]);
 
-  useDebouncedEffect(
+  const isPending = useDebouncedEffect(
     () => {
       if (loadState.type !== 'success') {
         // Important so that we don't launch a PUT and overwrite data when we
@@ -81,9 +83,10 @@ const Main: React.FC<MainProps> = props => {
         }),
       }).catch(err => console.log(err));
     },
-    2000,
+    1500,
     [tableBodyData, tableHeaderData, tableLeftColData, id],
   );
+  setSavingIndicator(isPending);
 
   if (loadState.type === 'error') {
     return <span>`error: ${loadState}`</span>;
@@ -277,10 +280,14 @@ export default Main;
 
 function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
   const lastTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isPending, setPending] = useState(false);
+
   useEffect(() => {
+    setPending(true);
     const timerId = setTimeout(() => {
       fn();
       lastTimer.current = null;
+      setPending(false);
     }, wait);
     lastTimer.current = timerId;
     return () => {
@@ -288,6 +295,8 @@ function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
       lastTimer.current && clearTimeout(lastTimer.current);
     };
   }, [...args, wait]);
+
+  return isPending;
 }
 
 type IterationTableProps = {
