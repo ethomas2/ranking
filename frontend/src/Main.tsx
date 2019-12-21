@@ -9,9 +9,10 @@ import _ from 'lodash';
 
 type MainProps = {
   setSavingIndicator: (isSaving: boolean) => void;
+  title: string;
 };
 const Main: React.FC<MainProps> = props => {
-  const {setSavingIndicator} = props;
+  const {setSavingIndicator, title} = props;
 
   const {id} = useParams();
 
@@ -80,11 +81,12 @@ const Main: React.FC<MainProps> = props => {
           body: tableBodyData,
           header: tableHeaderData,
           leftCol: tableLeftColData,
+          title: title,
         }),
       }).catch(err => console.log(err));
     },
     1500,
-    [tableBodyData, tableHeaderData, tableLeftColData, id],
+    [tableBodyData, tableHeaderData, title, tableLeftColData, id],
   );
   setSavingIndicator(isPending);
 

@@ -5,6 +5,23 @@ import {BrowserRouter as Router, Route} from 'react-router-dom';
 
 const App: React.FC = () => {
   const [isSaving, setSaving] = useState(false);
+  const [title, setTitle] = useState<string>('Title');
+  const [titleEditMode, setTitleEditMode] = useState(false);
+
+  const titleContent = titleEditMode ? (
+    <input
+      autoFocus
+      type="text"
+      value={title}
+      onChange={e => setTitle(e.target.value)}
+      onKeyDown={e => e.key === 'Enter' && setTitleEditMode(false)}
+      onBlur={() => setTitleEditMode(false)}
+    />
+  ) : (
+    <span className="App__title-text" onClick={() => setTitleEditMode(true)}>
+      {title}
+    </span>
+  );
   return (
     <Router>
       <div className="App">
@@ -16,12 +33,10 @@ const App: React.FC = () => {
         </div>
 
         <div className="App__center-column">
-          <h2 className="App__title-container">
-            <span className="App__title-text">Votes on Votes on Votes</span>
-          </h2>
+          <h2 className="App__title-container">{titleContent}</h2>
           <Route
             path="/election/:id"
-            render={props => <Main {...props} setSavingIndicator={setSaving} />}
+            render={() => <Main title={title} setSavingIndicator={setSaving} />}
           />
         </div>
 

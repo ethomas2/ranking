@@ -13,6 +13,10 @@
   flex: 2;
 }
 
+.App__title-text {
+  cursor: pointer;
+}
+
 .App__title-container {
   display: flex;
   justify-content: center;
