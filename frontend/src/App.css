@@ -33,6 +33,11 @@
   font-size: 12px;
 }
 
+.Main__saving-indicator {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .IterationTable {
   margin-top: 30px;
 }
