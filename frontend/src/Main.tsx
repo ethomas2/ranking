@@ -8,14 +8,14 @@ import {ElectionResponseType} from './types';
 import _ from 'lodash';
 
 type MainProps = {
-  setSavingIndicator: (isSaving: boolean) => void;
   title: string;
 };
 const Main: React.FC<MainProps> = props => {
-  const {setSavingIndicator, title} = props;
+  const {title} = props;
 
   const {id} = useParams();
 
+  const [updateInFlight, setUpdateInFlight] = useState(false);
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
   const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
   const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
@@ -72,6 +72,7 @@ const Main: React.FC<MainProps> = props => {
         return;
       }
 
+      setUpdateInFlight(true);
       req(`http://localhost:8000/election/${id}`, {
         method: 'PUT',
         headers: {
@@ -83,12 +84,13 @@ const Main: React.FC<MainProps> = props => {
           leftCol: tableLeftColData,
           title: title,
         }),
-      }).catch(err => console.log(err));
+      })
+        .then(() => setUpdateInFlight(false))
+        .catch(err => console.log(err));
     },
     1500,
     [tableBodyData, tableHeaderData, title, tableLeftColData, id],
   );
-  setSavingIndicator(isPending);
 
   if (loadState.type === 'error') {
     return <span>`error: ${loadState}`</span>;
@@ -244,8 +246,14 @@ const Main: React.FC<MainProps> = props => {
     setElectionWinners(winners);
   };
 
+  const isSaving = isPending || updateInFlight;
   return (
     <>
+      <div>
+        <span className="App__saving-indicator">
+          {isSaving ? 'Saving ...' : 'Saved'}
+        </span>
+      </div>
       <table>
         <thead>{tableHeaderRow}</thead>
         <tbody>{tableBodyRows}</tbody>

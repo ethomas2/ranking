@@ -4,7 +4,6 @@ import SidePanel from './SidePanel';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 
 const App: React.FC = () => {
-  const [isSaving, setSaving] = useState(false);
   const [title, setTitle] = useState<string>('Title');
   const [titleEditMode, setTitleEditMode] = useState(false);
 
@@ -42,19 +41,10 @@ const App: React.FC = () => {
           </div>
 
           <div className="App__center-column">
-            <Route
-              path="/election/:id"
-              render={() => (
-                <Main title={title} setSavingIndicator={setSaving} />
-              )}
-            />
+            <Route path="/election/:id" render={() => <Main title={title} />} />
           </div>
 
-          <div className="App__gutter">
-            <span className="App__saving-indicator">
-              {isSaving ? 'Saving ...' : 'Saved'}
-            </span>
-          </div>
+          <div className="App__gutter" />
         </div>
       </div>
     </Router>
