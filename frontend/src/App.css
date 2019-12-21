@@ -1,10 +1,14 @@
 .App {
   display: flex;
+  flex-direction: column;
   height: 100vh;
 
   margin: 50px 50px;
 }
 
+.App__row {
+  display: flex;
+}
 .App__gutter {
   flex: 1;
 }

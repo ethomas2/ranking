@@ -25,25 +25,36 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="App">
-        <div className="App__gutter">
-          {/* TODO: Figure out how to do path=* here and still be able to
+        <div className="App__row">
+          <div className="App__gutter" />
+          <h2 className="App__center-column App__title-container">
+            {titleContent}
+          </h2>
+          <div className="App__gutter" />
+        </div>
+
+        <div className="App__row">
+          <div className="App__gutter">
+            {/* TODO: Figure out how to do path=* here and still be able to
             access useParams in SidePanel */}
-          <Route path="/election/:id" component={SidePanel} />
-          <Route exact path="/" component={SidePanel} />
-        </div>
+            <Route path="/election/:id" component={SidePanel} />
+            <Route exact path="/" component={SidePanel} />
+          </div>
 
-        <div className="App__center-column">
-          <h2 className="App__title-container">{titleContent}</h2>
-          <Route
-            path="/election/:id"
-            render={() => <Main title={title} setSavingIndicator={setSaving} />}
-          />
-        </div>
+          <div className="App__center-column">
+            <Route
+              path="/election/:id"
+              render={() => (
+                <Main title={title} setSavingIndicator={setSaving} />
+              )}
+            />
+          </div>
 
-        <div className="App__gutter">
-          <span className="App__saving-indicator">
-            {isSaving ? 'Saving ...' : 'Saved'}
-          </span>
+          <div className="App__gutter">
+            <span className="App__saving-indicator">
+              {isSaving ? 'Saving ...' : 'Saved'}
+            </span>
+          </div>
         </div>
       </div>
     </Router>
