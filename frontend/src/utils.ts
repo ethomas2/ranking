@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export function range(n: number): number[] {
   let arr = [];
   for (var i = 0; i < n; i++) {
@@ -88,4 +90,18 @@ export function justify(arr: number[]): number[] {
    */
   const sorted = [...arr].sort();
   return arr.map(item => sorted.indexOf(item) + 1);
+}
+
+export function crossProduct<T, S>(arr1: T[], arr2: S[]): [T, S][] {
+  const results: [T, S][] = [];
+  for (const x of arr1) {
+    for (const y of arr2) {
+      results.push([x, y]);
+    }
+  }
+  return results;
+}
+
+export function deepIncludes<T>(arr: T[], item: T): boolean {
+  return arr.some(itemFromArr => _.isEqual(itemFromArr, item));
 }

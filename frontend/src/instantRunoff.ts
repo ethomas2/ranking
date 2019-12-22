@@ -1,5 +1,11 @@
 import _ from 'lodash';
-import {excludeIndicies, rankNTallies, enumerate, justify} from './utils';
+import {
+  excludeIndicies,
+  rankNTallies,
+  enumerate,
+  justify,
+  crossProduct,
+} from './utils';
 
 type CandidateName = string;
 
@@ -13,6 +19,7 @@ type IterationResult =
   | {
       type: 'WINNER';
       winner: CandidateName;
+      highlightIndicies: [number, number][];
     }
   | {
       type: 'TIE';
@@ -22,6 +29,8 @@ type IterationResult =
       type: 'ELIMINATED';
       newData: number[][];
       newCandidates: CandidateName[];
+      highlightIndicies: [number, number][];
+      eliminatedRows: number[];
     };
 
 export function iteration(
@@ -64,7 +73,13 @@ export function iteration(
   if (maxRank1sRecieved >= majority) {
     const idx = rank1Counts.indexOf(maxRank1sRecieved);
     const winner = candidates[idx];
-    return {type: 'WINNER', winner};
+
+    const highlightIndicies = crossProduct(
+      _.range(ncandidates),
+      _.range(numVoters),
+    ).filter(([rowIdx, colIdx]) => data[rowIdx][colIdx] === 1);
+
+    return {type: 'WINNER', winner, highlightIndicies};
   }
 
   // Case 2.
@@ -78,7 +93,19 @@ export function iteration(
       .map(justify)
       .unzip() // transpose again
       .value();
-    return {type: 'ELIMINATED', newCandidates, newData};
+
+    const highlightIndicies = crossProduct(
+      _.range(ncandidates),
+      _.range(numVoters),
+    ).filter(([rowIdx, colIdx]) => data[rowIdx][colIdx] === 1);
+
+    return {
+      type: 'ELIMINATED',
+      newCandidates,
+      newData,
+      highlightIndicies,
+      eliminatedRows: indiciesOfLeastRank1s,
+    };
   }
 
   // Case 3.
@@ -110,7 +137,18 @@ export function iteration(
         .map(justify)
         .unzip() // transpose again
         .value();
-      return {type: 'ELIMINATED', newCandidates, newData};
+
+      const highlightIndicies = crossProduct(
+        _.range(ncandidates),
+        _.range(numVoters),
+      ).filter(([rowIdx, colIdx]) => data[rowIdx][colIdx] === n);
+      return {
+        type: 'ELIMINATED',
+        newCandidates,
+        newData,
+        highlightIndicies,
+        eliminatedRows: indicies,
+      };
     }
   }
   return {type: 'TIE', winners: candidates};

@@ -1,6 +1,14 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {useParams} from 'react-router-dom';
-import {removeRow, removeCol, setArr, setArr2d, range, req} from './utils';
+import {
+  removeRow,
+  removeCol,
+  setArr,
+  setArr2d,
+  range,
+  req,
+  deepIncludes,
+} from './utils';
 import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
 import './App.css';
@@ -23,6 +31,8 @@ const Main: React.FC<MainProps> = props => {
   type IterationResult = {
     data: number[][];
     leftCol: string[];
+    highlightIndicies: [number, number][];
+    eliminatedRows: number[];
   };
   const [iterationResults, setIterationResults] = useState<
     IterationResult[] | null
@@ -208,7 +218,6 @@ const Main: React.FC<MainProps> = props => {
   };
 
   const onSubmit = () => {
-    // TODO: validate data. Needs to be all numbers and all in range [1, N]
     const newValidationState = validate();
     setValidationState(newValidationState);
     if (newValidationState !== null) {
@@ -217,28 +226,44 @@ const Main: React.FC<MainProps> = props => {
       return;
     }
 
-    const results: IterationResult[] = [
-      {
-        leftCol: tableLeftColData,
-        data: tableBodyData.map(row => row.map(item => Number(item.trim()))),
-      },
-    ];
-    let winners: string[] = ['No winners'];
+    const results: IterationResult[] = [];
+    let lastData = {
+      data: tableBodyData.map(row => row.map(item => Number(item.trim()))),
+      leftCol: tableLeftColData,
+    };
 
+    let winners: string[] = [];
     while (true) {
-      const lastResult = results[results.length - 1];
-      const newResult = iteration(lastResult.leftCol, lastResult.data);
-      if (newResult.type === 'WINNER') {
-        winners = [newResult.winner];
+      const result = iteration(lastData.leftCol, lastData.data);
+      let assertNever: never;
+      if (result.type === 'ELIMINATED') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: result.highlightIndicies,
+          eliminatedRows: result.eliminatedRows,
+        });
+        lastData = {data: result.newData, leftCol: result.newCandidates};
+      } else if (result.type === 'WINNER') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: result.highlightIndicies,
+          eliminatedRows: [],
+        });
+        winners = [result.winner];
         break;
-      } else if (newResult.type === 'TIE') {
-        winners = newResult.winners;
+      } else if (result.type === 'TIE') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: [],
+          eliminatedRows: [],
+        });
+        winners = result.winners;
         break;
       } else {
-        results.push({
-          leftCol: newResult.newCandidates,
-          data: newResult.newData,
-        });
+        assertNever = result;
       }
     }
 
@@ -271,14 +296,16 @@ const Main: React.FC<MainProps> = props => {
       {iterationResults &&
         iterationResults.map(roundResult => (
           <IterationTable
+            header={tableHeaderData}
             leftCol={roundResult.leftCol}
             data={roundResult.data}
-            header={tableHeaderData}
+            highlightIndicies={roundResult.highlightIndicies}
+            eliminatedRows={roundResult.eliminatedRows}
           />
         ))}
       {electionWinners && (
         <>
-          <div> Winners: </div>
+          <div> Winner(s): </div>
           {electionWinners.map(winner => (
             <div>{winner}</div>
           ))}
@@ -315,9 +342,11 @@ type IterationTableProps = {
   leftCol: string[];
   data: number[][];
   header: string[];
+  highlightIndicies: [number, number][];
+  eliminatedRows: number[];
 };
 const IterationTable: React.FC<IterationTableProps> = props => {
-  const {leftCol, data, header} = props;
+  const {leftCol, data, header, highlightIndicies, eliminatedRows} = props;
   const tableHeaderRow = (
     <tr>
       <th />
@@ -329,14 +358,30 @@ const IterationTable: React.FC<IterationTableProps> = props => {
     </tr>
   );
 
-  const tableBodyRows = data.map((row, rowIdx) => (
-    <tr key={`row-${rowIdx}`}>
-      <td className="IterationTable__body-cell">{leftCol[rowIdx]}</td>
-      {row.map(item => (
-        <td>{item}</td>
-      ))}
-    </tr>
-  ));
+  const tableBodyRows = data.map((row, rowIdx) => {
+    const eliminantedClass = eliminatedRows.includes(rowIdx)
+      ? 'IterationTable__eliminated-row'
+      : '';
+    return (
+      <tr key={`row-${rowIdx}`} className={eliminantedClass}>
+        <td className="IterationTable__body-cell">{leftCol[rowIdx]}</td>
+        {row.map((item, colIdx) => {
+          const idxTuple = [rowIdx, colIdx];
+          const highlightClass = deepIncludes(highlightIndicies, idxTuple)
+            ? 'IterationTable__highlight'
+            : '';
+
+          return (
+            <td
+              key={`iteration-table-cell-${rowIdx}-${colIdx}`}
+              className={highlightClass}>
+              {item}
+            </td>
+          );
+        })}
+      </tr>
+    );
+  });
 
   return (
     <table className="IterationTable">

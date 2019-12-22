@@ -56,13 +56,19 @@
 .IterationTable__body-cell {
   padding: 5px 20px;
 }
+.IterationTable__eliminated-row {
+  background-color: #ed9da9;
+}
+.IterationTable__highlight {
+  font-weight: bolder;
+}
 
 /* This is very not BEM. Do you care? */
 table {
   border-collapse: collapse;
 }
 
-tbody tr:nth-child(odd) {
+tbody tr:nth-child(odd):not(.IterationTable__eliminated-row) {
   background-color: #f2f2f2;
 }
 
