@@ -17,16 +17,16 @@ const App: React.FC = () => {
       onBlur={() => setTitleEditMode(false)}
     />
   ) : (
-    <span className="App__title-text" onClick={() => setTitleEditMode(true)}>
-      {title}
-    </span>
+    title
   );
   return (
     <Router>
       <div className="App">
         <div className="App__row">
           <div className="App__gutter" />
-          <h2 className="App__center-column App__title-container">
+          <h2
+            onClick={() => setTitleEditMode(true)}
+            className="App__center-column App__title-container">
             {titleContent}
           </h2>
           <div className="App__gutter" />
