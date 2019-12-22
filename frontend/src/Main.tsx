@@ -249,8 +249,12 @@ const Main: React.FC<MainProps> = props => {
   const isSaving = isPending || updateInFlight;
   return (
     <>
-      <div className="Main__saving-indicator">
-        <span>{isSaving ? 'Saving ...' : 'Saved'}</span>
+      <div className="Main__saving-container">
+        {isSaving ? (
+          'Saving ...'
+        ) : (
+          <span className="Main__saved-text">Saved</span>
+        )}
       </div>
       <table>
         <thead>{tableHeaderRow}</thead>
