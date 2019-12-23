@@ -8,6 +8,7 @@ import {
   range,
   req,
   deepIncludes,
+  BackendHttpError,
 } from './utils';
 import {iteration} from './instantRunoff';
 import WithHoverIcon from './WithHoverIcon';
@@ -57,8 +58,8 @@ const Main: React.FC<MainProps> = props => {
         setTableLeftCol(leftCol);
         setLoadState({type: 'success'});
       })
-      .catch(err => {
-        setLoadState({type: 'error', msg: `${err}`});
+      .catch((error: BackendHttpError) => {
+        setLoadState({type: 'error', msg: error.error});
       });
   }, [id]);
 
@@ -103,7 +104,7 @@ const Main: React.FC<MainProps> = props => {
   );
 
   if (loadState.type === 'error') {
-    return <span>`error: ${loadState}`</span>;
+    return <span>{`Error: ${loadState.msg}`}</span>;
   }
 
   if (

@@ -24,35 +24,42 @@ def wrap_response(f):
     def g(*args, **kwargs):
         with global_lock:
             try:
-                retval = f(*args, **kwargs)
-                resp = Response(
-                    json.dumps(retval)) if retval else Response(json.dumps({}))
+                return f(*args, **kwargs)
             except Exception as e:
                 traceback.print_exc(file=sys.stderr)
-                resp = Response(json.dumps({
+                return Response(json.dumps({
                     'error': str(e),
                 }), status=500)
 
-            return resp
     return g
+
+
+def _response(arg, **kwargs):
+    return Response(json.dumps(arg), **kwargs)
 
 
 @app.route("/election/<election_id>", methods=['GET'])
 @wrap_response
 def get_election(election_id: str):
-    return _get_election(election_id)
+
+    if election_id not in os.listdir(DB_DIR):
+        return _response(
+            {'error': f'Election id {election_id} not found'},
+            status=404
+        )
+
+    return _response(_get_election(election_id))
 
 
 @app.route("/elections", methods=['POST', 'GET'])
 @wrap_response
 def elections():
     if request.method == 'POST':
-        return _new_election()
+        return _response(_new_election())
     elif request.method == 'GET':
-        return _get_all_elections()
+        return _response(_get_all_elections())
     else:
-        # TODO: return 405
-        pass
+        return _response({}, status=405)
 
 
 def _new_election():
@@ -104,6 +111,7 @@ def update_election(election_id):
     newData = {**current_data, **updates}
     with open(f'{DB_DIR}/{election_id}', 'w') as f:
         f.write(json.dumps(newData))
+    return _response({})
 
 
 if __name__ == "__main__":

@@ -39,8 +39,26 @@ export function setArr2d<T>(
   return copy;
 }
 
-export function req<T>(url: string, options?: RequestInit): Promise<T> {
-  return fetch(url, options).then(resp => (resp.json() as unknown) as T);
+export type BackendHttpError = {
+  status: number;
+  error: string;
+};
+
+export async function req<T>(url: string, options?: RequestInit): Promise<T> {
+  // TODO: errors won't always be http error
+  // TODO: even if error is http error, FE should verify that it's formatted in
+  // the expected way {type: ..., error: ...}
+  const resp = await fetch(url, options);
+  if (resp.ok) {
+    const respJson = (await (resp.json() as unknown)) as T;
+    return respJson;
+  } else {
+    const respJson = await resp.json();
+    throw {
+      status: resp.status,
+      error: respJson.error,
+    };
+  }
 }
 
 export function excludeIndicies<T>(arr: readonly T[], indicies: number[]) {
