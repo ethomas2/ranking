@@ -1,9 +1,10 @@
-import traceback
-import sys
-import itertools
-import os
-import json
 import functools
+import itertools
+import json
+import os
+import sys
+import threading
+import traceback
 
 from flask import Flask, request, Response
 from flask_cors import CORS
@@ -14,20 +15,25 @@ CORS(app, resources={r"*": {"origins": "*"}})
 DB_DIR = 'db'
 
 
+# Really only need a lock on a per-election basis, but fuck it.
+global_lock = threading.Lock()
+
+
 def wrap_response(f):
     @functools.wraps(f)
     def g(*args, **kwargs):
-        try:
-            retval = f(*args, **kwargs)
-            resp = Response(
-                json.dumps(retval)) if retval else Response(json.dumps({}))
-        except Exception as e:
-            traceback.print_exc(file=sys.stderr)
-            resp = Response(json.dumps({
-                'error': str(e),
-            }), status=500)
+        with global_lock:
+            try:
+                retval = f(*args, **kwargs)
+                resp = Response(
+                    json.dumps(retval)) if retval else Response(json.dumps({}))
+            except Exception as e:
+                traceback.print_exc(file=sys.stderr)
+                resp = Response(json.dumps({
+                    'error': str(e),
+                }), status=500)
 
-        return resp
+            return resp
     return g
 
 
