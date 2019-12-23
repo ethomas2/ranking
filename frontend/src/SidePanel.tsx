@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import './SidePanel.css';
 import {useHistory, useParams} from 'react-router-dom';
-import {req} from './utils';
+import {req, BackendHttpError} from './utils';
 import {ElectionResponseType} from './types';
+import _ from 'lodash';
 
 const SidePanel: React.FC = () => {
   type Card = {
@@ -20,11 +21,15 @@ const SidePanel: React.FC = () => {
       `http://localhost:8000/elections`,
     ).then(data => {
       const {elections} = data;
-      const cards: Card[] = elections.map(({id, title}) => ({
-        id,
-        title,
-        date: new Date(),
-      }));
+      const cards: Card[] = _.chain(elections)
+        .map(({id, title}) => ({
+          id,
+          title,
+          date: new Date(),
+        }))
+        .sortBy(({id}) => -1 * Number(id))
+        .value();
+
       setCards(cards);
     });
   }, [urlId]);
@@ -41,7 +46,7 @@ const SidePanel: React.FC = () => {
       },
     })
       .then(result => history.push(`/election/${result.id}`))
-      .catch(err => alert(err));
+      .catch((err: BackendHttpError) => alert(err.error));
   };
 
   return (

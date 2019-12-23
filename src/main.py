@@ -67,9 +67,8 @@ def _new_election():
         os.mkdir(DB_DIR)
     except FileExistsError:
         pass
-    existing_ids = set(map(int, os.listdir(DB_DIR)))
-    next_election_id = str(next(
-        (i for i in itertools.count() if i not in existing_ids)))
+    existing_ids = map(int, os.listdir(DB_DIR))
+    next_election_id = str(max(existing_ids) + 1)
     next_election_path = os.path.join(DB_DIR, next_election_id)
     with open(next_election_path, 'w') as f:
         f.write(json.dumps({
