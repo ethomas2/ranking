@@ -4,8 +4,8 @@ set -euxo pipefail
 
 # copy new version of code
 cat docker-compose.prod.yaml | ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
-cat - > /tmp/docker-compose.prod.yaml
-docker-compose -f /tmp/docker-compose.prod.yaml pull
-docker-compose -f /tmp/docker-compose.prod.yaml down
-docker-compose -f /tmp/docker-compose.prod.yaml up -d
+cat - > ~/docker-compose.yaml
+docker-compose -f ~/docker-compose.yaml pull
+docker-compose -f ~/docker-compose.yaml down
+docker-compose -f ~/docker-compose.yaml up -d
 """
