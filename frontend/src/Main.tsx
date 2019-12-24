@@ -319,7 +319,7 @@ const Main: React.FC<MainProps> = props => {
 export default Main;
 
 function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
-  const lastTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastTimer = useRef<[NodeJS.Timeout, () => void] | null>(null);
   const [isPending, setPending] = useState(false);
 
   useEffect(() => {
@@ -329,10 +329,16 @@ function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
       lastTimer.current = null;
       setPending(false);
     }, wait);
-    lastTimer.current = timerId;
+    lastTimer.current = [timerId, fn];
     return () => {
-      // if the component unmounts before the effect occurs, cancel the effect
-      lastTimer.current && clearTimeout(lastTimer.current);
+      // if the component unmounts before the effect occurs, force the effect
+      // to execute early
+      if (lastTimer.current !== null) {
+        const [timerId, fn] = lastTimer.current;
+        clearTimeout(timerId);
+        fn();
+      }
+      setPending(false);
     };
   }, [...args, wait]);
 
