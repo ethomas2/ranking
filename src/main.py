@@ -38,7 +38,7 @@ def _response(arg, **kwargs):
     return Response(json.dumps(arg), **kwargs)
 
 
-@app.route("/election/<election_id>", methods=['GET'])
+@app.route("/election/<election_id>", methods=['GET', 'DELETE'])
 @wrap_response
 def get_election(election_id: str):
     try:
@@ -46,13 +46,21 @@ def get_election(election_id: str):
     except FileExistsError:
         pass
 
-    if election_id not in os.listdir(DB_DIR):
-        return _response(
-            {'error': f'Election id {election_id} not found'},
-            status=404
-        )
+    if request.method == 'GET':
+        if election_id not in os.listdir(DB_DIR):
+            return _response(
+                {'error': f'Election id {election_id} not found'},
+                status=404
+            )
 
-    return _response(_get_election(election_id))
+        return _response(_get_election(election_id))
+    elif request.method == 'DELETE':
+        return _response(_delete_election(election_id))
+
+
+def _delete_election(election_id: str):
+    os.remove(os.path.join(DB_DIR, election_id))
+    return {}
 
 
 @app.route("/elections", methods=['POST', 'GET'])
