@@ -44,10 +44,12 @@ export type BackendHttpError = {
   error: string;
 };
 
-export async function req<T>(url: string, options?: RequestInit): Promise<T> {
+export async function req<T>(path: string, options?: RequestInit): Promise<T> {
   // TODO: errors won't always be http error
   // TODO: even if error is http error, FE should verify that it's formatted in
   // the expected way {type: ..., error: ...}
+  // TODO: this window.location hacking is dirty
+  const url = `${window.location.protocol}//${window.location.hostname}:8000${path}`;
   const resp = await fetch(url, options);
   if (resp.ok) {
     const respJson = (await (resp.json() as unknown)) as T;

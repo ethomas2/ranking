@@ -50,7 +50,7 @@ const Main: React.FC<MainProps> = props => {
   const [validationState, setValidationState] = useState<ValidationState>(null);
 
   useEffect(() => {
-    req<ElectionResponseType>(`http://localhost:8000/election/${id}`)
+    req<ElectionResponseType>(`/election/${id}`)
       .then(data => {
         const {body, header, leftCol} = data;
         setTableData(body);
@@ -84,7 +84,7 @@ const Main: React.FC<MainProps> = props => {
       }
 
       setUpdateInFlight(true);
-      req(`http://localhost:8000/election/${id}`, {
+      req(`/election/${id}`, {
         method: 'PUT',
         headers: {
           Accept: 'application/json',

@@ -17,9 +17,7 @@ const SidePanel: React.FC = () => {
   const history = useHistory();
   const {id: urlId} = useParams();
   useEffect(() => {
-    req<{elections: ElectionResponseType[]}>(
-      `http://localhost:8000/elections`,
-    ).then(data => {
+    req<{elections: ElectionResponseType[]}>(`/elections`).then(data => {
       const {elections} = data;
       const cards: Card[] = _.chain(elections)
         .map(({id, title}) => ({
@@ -39,7 +37,7 @@ const SidePanel: React.FC = () => {
   };
 
   const createNew = () => {
-    req<{id: number}>('http://localhost:8000/elections', {
+    req<{id: number}>('/elections', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
