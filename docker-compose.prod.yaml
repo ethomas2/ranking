@@ -5,8 +5,15 @@ services:
     image: evanrthomas/instant-runoff-app-backend
     ports:
       - '8000:8000'
+    volumes:
+      - data-volume:/var/lib/db
+    environment:
+      APP_DB_DIR: '/var/lib/db'
 
   frontend:
     image: evanrthomas/instant-runoff-app-frontend
     ports:
       - '3000:3000'
+
+volumes:
+  data-volume:

@@ -12,7 +12,7 @@ from flask_cors import CORS
 app = Flask('elections')
 CORS(app, resources={r"*": {"origins": "*"}})
 
-DB_DIR = 'db'
+DB_DIR = os.environ.get('APP_DB_DIR', 'db')
 
 
 # Really only need a lock on a per-election basis, but fuck it.
@@ -41,6 +41,10 @@ def _response(arg, **kwargs):
 @app.route("/election/<election_id>", methods=['GET'])
 @wrap_response
 def get_election(election_id: str):
+    try:
+        os.makedirs(DB_DIR)
+    except FileExistsError:
+        pass
 
     if election_id not in os.listdir(DB_DIR):
         return _response(
@@ -54,6 +58,11 @@ def get_election(election_id: str):
 @app.route("/elections", methods=['POST', 'GET'])
 @wrap_response
 def elections():
+    try:
+        os.makedirs(DB_DIR)
+    except FileExistsError:
+        pass
+
     if request.method == 'POST':
         return _response(_new_election())
     elif request.method == 'GET':
@@ -64,7 +73,7 @@ def elections():
 
 def _new_election():
     try:
-        os.mkdir(DB_DIR)
+        os.makedirs(DB_DIR)
     except FileExistsError:
         pass
     existing_ids = list(map(int, os.listdir(DB_DIR)))
@@ -99,7 +108,7 @@ def _get_election(election_id: str):
 @wrap_response
 def update_election(election_id):
     try:
-        os.mkdir(DB_DIR)
+        os.makedirs(DB_DIR)
     except FileExistsError:
         pass
 
