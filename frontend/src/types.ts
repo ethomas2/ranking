@@ -6,4 +6,5 @@ export type ElectionResponseType = {
   body: string[][];
   header: string[];
   leftCol: string[];
+  version: string;
 };

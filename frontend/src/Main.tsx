@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useParams} from 'react-router-dom';
 import {
   removeRow,
@@ -28,6 +28,7 @@ const Main: React.FC<MainProps> = props => {
   const [tableBodyData, setTableData] = useState<string[][] | null>(null);
   const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
   const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
+  const [version, setVersion] = useState<string | null>(null);
 
   type IterationResult = {
     data: number[][];
@@ -52,10 +53,11 @@ const Main: React.FC<MainProps> = props => {
   useEffect(() => {
     req<ElectionResponseType>(`/election/${id}`)
       .then(data => {
-        const {body, header, leftCol} = data;
+        const {body, header, leftCol, version} = data;
         setTableData(body);
         setTableHeader(header);
         setTableLeftCol(leftCol);
+        setVersion(version);
         setLoadState({type: 'success'});
       })
       .catch((error: BackendHttpError) => {
@@ -84,7 +86,7 @@ const Main: React.FC<MainProps> = props => {
       }
 
       setUpdateInFlight(true);
-      req(`/election/${id}`, {
+      req<{version: string}>(`/election/${id}`, {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
@@ -93,11 +95,24 @@ const Main: React.FC<MainProps> = props => {
           body: tableBodyData,
           header: tableHeaderData,
           leftCol: tableLeftColData,
-          title: title,
+          version,
+          title,
         }),
       })
-        .then(() => setUpdateInFlight(false))
-        .catch(err => console.log(err));
+        .then(({version}) => {
+          setUpdateInFlight(false);
+          console.log(version);
+          setVersion(version);
+        })
+        .catch((err: BackendHttpError) => {
+          console.log(err);
+          if (err.versionConflict) {
+            setValidationState(
+              'Changes not saved. Someone updated or removed this document since your last edit. Please refresh page.',
+            );
+          }
+          setUpdateInFlight(false);
+        });
     },
     1500,
     [tableBodyData, tableHeaderData, title, tableLeftColData],
@@ -288,7 +303,7 @@ const Main: React.FC<MainProps> = props => {
         <tbody>{tableBodyRows}</tbody>
       </table>
       {validationState && (
-        <span className="Main__validationMsg">{validationState}</span>
+        <span className="Main__validation-msg">{validationState}</span>
       )}
       <div>
         <input value="Add Person" onClick={addPerson} type="button" />

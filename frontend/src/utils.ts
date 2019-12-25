@@ -42,6 +42,7 @@ export function setArr2d<T>(
 export type BackendHttpError = {
   status: number;
   error: string;
+  versionConflict?: boolean;
 };
 
 export async function req<T>(path: string, options?: RequestInit): Promise<T> {
@@ -59,6 +60,7 @@ export async function req<T>(path: string, options?: RequestInit): Promise<T> {
     throw {
       status: resp.status,
       error: respJson.error,
+      versionConflict: respJson.versionConflict,
     };
   }
 }
