@@ -100,7 +100,8 @@ const Main: React.FC<MainProps> = props => {
         .catch(err => console.log(err));
     },
     1500,
-    [tableBodyData, tableHeaderData, title, tableLeftColData, id],
+    [tableBodyData, tableHeaderData, title, tableLeftColData],
+    [id],
   );
 
   if (loadState.type === 'error') {
@@ -318,9 +319,34 @@ const Main: React.FC<MainProps> = props => {
 
 export default Main;
 
-function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
+function useDebouncedEffect(
+  fn: () => void,
+  wait: number,
+  debounceArgs: any[],
+  forceArgs?: any[],
+) {
+  /*
+   * @param fn           The function to fire
+   * @param wait         Amount of time to wait before firing the function
+   * @param debounceArgs The args to debounce on. When these args change, the
+   *                     pending function will be replaced by the new function
+   * @param forceArgs    If these args change, force the pending function to fire
+   *                     before setting the new fn as pending.
+   */
   const lastTimer = useRef<[NodeJS.Timeout, () => void] | null>(null);
   const [isPending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (!forceArgs) {
+      return;
+    }
+    if (lastTimer.current !== null) {
+      const [timerId, fn] = lastTimer.current;
+      clearTimeout(timerId);
+      setPending(false);
+      fn();
+    }
+  }, forceArgs);
 
   useEffect(() => {
     setPending(true);
@@ -331,16 +357,12 @@ function useDebouncedEffect(fn: () => void, wait: number, args: any[]) {
     }, wait);
     lastTimer.current = [timerId, fn];
     return () => {
-      // if the component unmounts before the effect occurs, force the effect
-      // to execute early
       if (lastTimer.current !== null) {
-        const [timerId, fn] = lastTimer.current;
+        const [timerId] = lastTimer.current;
         clearTimeout(timerId);
-        fn();
       }
-      setPending(false);
     };
-  }, [...args, wait]);
+  }, [...debounceArgs, wait]);
 
   return isPending;
 }
