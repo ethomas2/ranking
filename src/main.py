@@ -13,6 +13,7 @@ app = Flask('elections')
 CORS(app, resources={r"*": {"origins": "*"}})
 
 DB_DIR = os.environ.get('APP_DB_DIR', 'db')
+VERSION = 'version'
 
 
 # Really only need a lock on a per-election basis, but fuck it.
@@ -47,6 +48,8 @@ def get_election(election_id: str):
         pass
 
     if request.method == 'GET':
+        # TODO: make _get_election return NOne and do if _get_election is None
+        # return 404
         if election_id not in os.listdir(DB_DIR):
             return _response(
                 {'error': f'Election id {election_id} not found'},
@@ -55,12 +58,8 @@ def get_election(election_id: str):
 
         return _response(_get_election(election_id))
     elif request.method == 'DELETE':
-        return _response(_delete_election(election_id))
-
-
-def _delete_election(election_id: str):
-    os.remove(os.path.join(DB_DIR, election_id))
-    return {}
+        os.remove(os.path.join(DB_DIR, election_id))
+        return _response({})
 
 
 @app.route("/elections", methods=['POST', 'GET'])
@@ -90,7 +89,8 @@ def _new_election():
     with open(next_election_path, 'w') as f:
         f.write(json.dumps({
             'body': [], 'header': [], 'leftCol': [],
-            'title': f'My Title - {next_election_id}'
+            'title': f'My Title - {next_election_id}',
+            VERSION: 0,
         }))
 
     return {'id': next_election_id}
@@ -106,7 +106,8 @@ def _get_all_elections():
 
 
 def _get_election(election_id: str):
-    with open(f'{DB_DIR}/{election_id}') as f:
+    # TODO: return None if doesn't exist
+    with open(os.path.join(DB_DIR, election_id)) as f:
         data = json.loads(f.read().strip())
         data['id'] = election_id
         return data
@@ -125,6 +126,7 @@ def update_election(election_id):
         current_data = json.loads(f.read().strip())
 
     newData = {**current_data, **updates}
+    newData[VERSION] = newData.get(VERSION, 0) + 1
     with open(f'{DB_DIR}/{election_id}', 'w') as f:
         f.write(json.dumps(newData))
     return _response({})
