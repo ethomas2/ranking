@@ -119,6 +119,65 @@ const Main: React.FC<MainProps> = props => {
     [id],
   );
 
+  useEffect(() => {
+    if (tableBodyData === null || tableLeftColData === null) {
+      // data uninitialized
+      return;
+    }
+
+    const newValidationState = validate();
+    setValidationState(newValidationState);
+    if (newValidationState !== null) {
+      setIterationResults(null);
+      setElectionWinners(null);
+      return;
+    }
+
+    const results: IterationResult[] = [];
+    let lastData = {
+      data: tableBodyData.map(row => row.map(item => Number(item.trim()))),
+      leftCol: tableLeftColData,
+    };
+
+    let winners: string[] = [];
+    while (true) {
+      const result = iteration(lastData.leftCol, lastData.data);
+      let assertNever: never;
+      if (result.type === 'ELIMINATED') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: result.highlightIndicies,
+          eliminatedRows: result.eliminatedRows,
+        });
+        lastData = {data: result.newData, leftCol: result.newCandidates};
+      } else if (result.type === 'WINNER') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: result.highlightIndicies,
+          eliminatedRows: [],
+        });
+        winners = [result.winner];
+        break;
+      } else if (result.type === 'TIE') {
+        results.push({
+          data: lastData.data,
+          leftCol: lastData.leftCol,
+          highlightIndicies: [],
+          eliminatedRows: [],
+        });
+        winners = result.winners;
+        break;
+      } else {
+        assertNever = result;
+      }
+    }
+
+    setIterationResults(results);
+    setElectionWinners(winners);
+  }, [tableBodyData, tableLeftColData]);
+
   if (loadState.type === 'error') {
     return <span>{`Error: ${loadState.msg}`}</span>;
   }
@@ -234,60 +293,6 @@ const Main: React.FC<MainProps> = props => {
     return null;
   };
 
-  const onSubmit = () => {
-    const newValidationState = validate();
-    setValidationState(newValidationState);
-    if (newValidationState !== null) {
-      setIterationResults(null);
-      setElectionWinners(null);
-      return;
-    }
-
-    const results: IterationResult[] = [];
-    let lastData = {
-      data: tableBodyData.map(row => row.map(item => Number(item.trim()))),
-      leftCol: tableLeftColData,
-    };
-
-    let winners: string[] = [];
-    while (true) {
-      const result = iteration(lastData.leftCol, lastData.data);
-      let assertNever: never;
-      if (result.type === 'ELIMINATED') {
-        results.push({
-          data: lastData.data,
-          leftCol: lastData.leftCol,
-          highlightIndicies: result.highlightIndicies,
-          eliminatedRows: result.eliminatedRows,
-        });
-        lastData = {data: result.newData, leftCol: result.newCandidates};
-      } else if (result.type === 'WINNER') {
-        results.push({
-          data: lastData.data,
-          leftCol: lastData.leftCol,
-          highlightIndicies: result.highlightIndicies,
-          eliminatedRows: [],
-        });
-        winners = [result.winner];
-        break;
-      } else if (result.type === 'TIE') {
-        results.push({
-          data: lastData.data,
-          leftCol: lastData.leftCol,
-          highlightIndicies: [],
-          eliminatedRows: [],
-        });
-        winners = result.winners;
-        break;
-      } else {
-        assertNever = result;
-      }
-    }
-
-    setIterationResults(results);
-    setElectionWinners(winners);
-  };
-
   const isSaving = isPending || updateInFlight;
   return (
     <>
@@ -308,7 +313,6 @@ const Main: React.FC<MainProps> = props => {
       <div>
         <input value="Add Person" onClick={addPerson} type="button" />
         <input value="Add Book" onClick={addBook} type="button" />
-        <input value="Submit" onClick={onSubmit} type="button" />
       </div>
       {iterationResults &&
         iterationResults.map(roundResult => (
