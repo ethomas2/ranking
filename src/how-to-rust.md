@@ -11,3 +11,6 @@
 
 # Notes
 - Option<T> is an enum
+
+# Mistakes
+- it's Some, not Ok

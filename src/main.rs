@@ -3,28 +3,39 @@
 #[macro_use]
 extern crate rocket;
 
-// use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
+// use std::boxed;
+use std::env;
+use std::error;
+use std::fs;
+use std::io;
+
+type HeapError = Box<dyn error::Error>;
 
 #[get("/")]
 fn get() -> &'static str {
     "Hello, world!"
 }
 
-#[post("/")]
-fn post() -> &'static str {
-    // first ... assume dir exists and write thing into it
-    File::create("elections/1").and_then(|file| file.write(b"foobar"));
-    "foobar"
+#[post("/elections")]
+fn post() -> Result<String, HeapError> {
+    let db_dir = get_db_dir()?;
+    Ok(String::from(""))
+}
 
-    // then check if dir doesn't exist and if it doesn't create it first
-    // let dir_results = match fs::read_dir(".") {
-    //     Ok(_) => "foobar",
-    //     Err(_) => "error reading dir",
-    // };
-    // dir_results.any(|res| res == "entries")
-    // dir_results
+fn get_db_dir() -> Result<String, HeapError> {
+    let default = String::from("db");
+
+    let x = match env::var("APP_DB_DIR") {
+        Ok(x) => Ok(x),
+        Err(x) => {
+            if x == env::VarError::NotPresent {
+                return Ok(default);
+            } else {
+                return Err(Box::new(x));
+            }
+        }
+    };
+    return x;
 }
 
 fn main() {
