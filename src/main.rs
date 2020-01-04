@@ -19,7 +19,15 @@ fn get() -> &'static str {
 #[post("/elections")]
 fn post() -> Result<String, HeapError> {
     let db_dir = get_db_dir()?;
-    Ok(String::from(""))
+
+    // create dir and change ErrorKind to pass
+    if let Err(e) = fs::create_dir(db_dir) {
+        if e.kind() != io::ErrorKind::AlreadyExists {
+            Err(e)?;
+        }
+    }
+
+    Ok(String::from("success"))
 }
 
 fn get_db_dir() -> Result<String, HeapError> {
