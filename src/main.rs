@@ -25,8 +25,8 @@ fn get() -> &'static str {
 
 #[post("/elections")]
 fn post() -> Result<JsonValue> {
-    let dir_entres =
-        fs::read_dir(DB_DIR)?.collect::<result::Result<Vec<fs::DirEntry>, io::Error>>()?;
+    let dir_entres = fs::read_dir(DB_DIR)?
+        .collect::<result::Result<Vec<fs::DirEntry>, io::Error>>()?;
 
     // TODO: get rid of these unwraps
     let filenames = dir_entres.into_iter().map(|dir_entry| {
