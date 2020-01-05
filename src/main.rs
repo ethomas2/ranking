@@ -25,24 +25,18 @@ fn get() -> &'static str {
 
 #[post("/elections")]
 fn post() -> Result<JsonValue> {
-    let (dir_entres, errors): (Vec<_>, Vec<_>) =
-        fs::read_dir(DB_DIR)?.partition(result::Result::is_ok);
-    if errors.len() > 0 {
-        eprintln!("Errors {:?}", errors);
-    }
+    let dir_entres =
+        fs::read_dir(DB_DIR)?.collect::<result::Result<Vec<fs::DirEntry>, io::Error>>()?;
 
     // TODO: get rid of these unwraps
-    let filenames = dir_entres
-        .into_iter()
-        .map(result::Result::unwrap)
-        .map(|dir_entry| {
-            dir_entry
-                .file_name()
-                .into_string()
-                .unwrap() // turning filename into string can fail if filename is not utf8 encodeable
-                .parse::<i64>()
-                .unwrap()
-        });
+    let filenames = dir_entres.into_iter().map(|dir_entry| {
+        dir_entry
+            .file_name()
+            .into_string()
+            .unwrap() // turning filename into string can fail if filename is not utf8 encodeable
+            .parse::<i64>()
+            .unwrap()
+    });
     let next_election_id = filenames.fold(0, i64::max) + 1;
 
     fs::write(
