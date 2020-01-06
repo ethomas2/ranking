@@ -18,15 +18,27 @@ type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 static DB_DIR: &str = "db"; // TODO: should be read in by config
 static VERSION: &str = "version";
 
-#[get("/")]
-fn get() -> &'static str {
-    "Hello, world!"
+#[get("/elections")]
+fn get_all_elections() -> Result<JsonValue> {
+    let dir_entries =
+        fs::read_dir("db")?.collect::<io::Result<Vec<fs::DirEntry>>>()?;
+    let filepaths: Vec<_> = dir_entries
+        .iter()
+        .map(|d| d.file_name().into_string().unwrap())
+        .collect();
+
+    let filecontents: Vec<Result<String>> = filepaths
+        .iter()
+        .map(|fp| Ok(String::from_utf8(fs::read(fp)?)?))
+        .collect();
+
+    Ok(json!({"foo": "bar"}))
 }
 
 #[post("/elections")]
-fn post() -> Result<JsonValue> {
-    let dir_entres = fs::read_dir(DB_DIR)?
-        .collect::<result::Result<Vec<fs::DirEntry>, io::Error>>()?;
+fn new_election() -> Result<JsonValue> {
+    let dir_entres =
+        fs::read_dir(DB_DIR)?.collect::<io::Result<Vec<fs::DirEntry>>>()?;
 
     // TODO: get rid of these unwraps
     let filenames = dir_entres.into_iter().map(|dir_entry| {
@@ -83,5 +95,7 @@ fn main() {
         std::process::exit(1);
     }
 
-    rocket::ignite().mount("/", routes![get, post]).launch();
+    rocket::ignite()
+        .mount("/", routes![new_election, get_all_elections])
+        .launch();
 }
