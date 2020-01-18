@@ -5,13 +5,15 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 
-use rocket_contrib::json::JsonValue;
+use rocket_contrib::json::{Json, JsonValue};
 
 use std::env;
 use std::error;
-use std::fs::{self, File};
+use std::fs::{self};
 use std::io;
-use std::result;
+use std::str;
+
+use serde::{Deserialize, Serialize};
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -33,6 +35,26 @@ fn get_all_elections() -> Result<JsonValue> {
         .collect();
 
     Ok(json!({"foo": "bar"}))
+}
+
+#[derive(Serialize, Deserialize)]
+struct Election<'a> {
+    id: i32,
+    body: &'a [&'a [&'a str]],
+    // body: &'a [bool],
+    // header: Vec<&'a str>,
+    // leftCol: Vec<&'a str>,
+    // title: &'a str,
+}
+
+fn get_election<'a>(id: i32) -> Result<Election<'a>> {
+    let foo = String::from_utf8(fs::read(format!("db/{}", id))?)?;
+    let election: Election = serde_json::from_str(&foo)?;
+
+    // let election = Election {
+    //     body: &[&["hi", "there"], &["face", "here"]], // body: &[1, 2, 3],
+    // };
+    Ok(election)
 }
 
 #[post("/elections")]
