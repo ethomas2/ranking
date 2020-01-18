@@ -5,6 +5,7 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 
+use rocket::http::RawStr;
 use rocket_contrib::json::{Json, JsonValue};
 
 use std::env;
@@ -20,6 +21,15 @@ type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 static DB_DIR: &str = "db"; // TODO: should be read in by config
 static VERSION: &str = "version";
 
+#[derive(Serialize, Deserialize)]
+struct Election {
+    id: i32,
+    body: Vec<Vec<String>>,
+    header: Vec<String>,
+    leftCol: Vec<String>,
+    title: String,
+}
+
 #[get("/elections")]
 fn get_all_elections() -> Result<JsonValue> {
     let dir_entries =
@@ -34,21 +44,6 @@ fn get_all_elections() -> Result<JsonValue> {
         .collect::<Result<Vec<_>>>()?;
 
     Ok(json!({ "elections": elections }))
-}
-
-#[derive(Serialize, Deserialize)]
-struct Election {
-    id: i32,
-    body: Vec<Vec<String>>,
-    header: Vec<String>,
-    leftCol: Vec<String>,
-    title: String,
-}
-
-fn get_election(id: &str) -> Result<Election> {
-    let foo = String::from_utf8(fs::read(format!("db/{}", id))?)?;
-    let election: Election = serde_json::from_str(&foo)?;
-    Ok(election)
 }
 
 #[post("/elections")]
@@ -83,6 +78,18 @@ fn new_election() -> Result<JsonValue> {
     Ok(json!({ "id": next_election_id }))
 }
 
+#[get("/election/<raw_id>")]
+fn get_election_endpoint(raw_id: &RawStr) -> Result<Json<Election>> {
+    let election = get_election(&raw_id.url_decode()?)?;
+    Ok(Json(election))
+}
+
+fn get_election(id: &str) -> Result<Election> {
+    let foo = String::from_utf8(fs::read(format!("db/{}", id))?)?;
+    let election: Election = serde_json::from_str(&foo)?;
+    Ok(election)
+}
+
 fn create_db_dir() -> Result<String> {
     // TODO: add a load_config fn that you call as first line of main() that loads this into a
     // global config variable
@@ -112,6 +119,9 @@ fn main() {
     }
 
     rocket::ignite()
-        .mount("/", routes![new_election, get_all_elections])
+        .mount(
+            "/",
+            routes![new_election, get_all_elections, get_election_endpoint],
+        )
         .launch();
 }
