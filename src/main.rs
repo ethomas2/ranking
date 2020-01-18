@@ -24,36 +24,30 @@ static VERSION: &str = "version";
 fn get_all_elections() -> Result<JsonValue> {
     let dir_entries =
         fs::read_dir("db")?.collect::<io::Result<Vec<fs::DirEntry>>>()?;
-    let filepaths: Vec<_> = dir_entries
+
+    let filenames: Vec<_> = dir_entries
         .iter()
         .map(|d| d.file_name().into_string().unwrap())
         .collect();
 
-    let filecontents: Vec<Result<String>> = filepaths
-        .iter()
-        .map(|fp| Ok(String::from_utf8(fs::read(fp)?)?))
-        .collect();
+    // let elections: Vec<_> = filenames.iter().map(|s| get_election(s)).collect();
+    let elections: Vec<_> = filenames.iter().map(get_election).collect();
 
-    Ok(json!({"foo": "bar"}))
+    Ok(json!({"elections": "bar"}))
 }
 
 #[derive(Serialize, Deserialize)]
-struct Election<'a> {
+struct Election {
     id: i32,
-    body: &'a [&'a [&'a str]],
-    // body: &'a [bool],
-    // header: Vec<&'a str>,
-    // leftCol: Vec<&'a str>,
-    // title: &'a str,
+    body: Vec<Vec<String>>,
+    header: Vec<String>,
+    leftCol: Vec<String>,
+    title: String,
 }
 
-fn get_election<'a>(id: i32) -> Result<Election<'a>> {
+fn get_election(id: &str) -> Result<Election> {
     let foo = String::from_utf8(fs::read(format!("db/{}", id))?)?;
     let election: Election = serde_json::from_str(&foo)?;
-
-    // let election = Election {
-    //     body: &[&["hi", "there"], &["face", "here"]], // body: &[1, 2, 3],
-    // };
     Ok(election)
 }
 
