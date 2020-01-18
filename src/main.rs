@@ -25,15 +25,15 @@ fn get_all_elections() -> Result<JsonValue> {
     let dir_entries =
         fs::read_dir("db")?.collect::<io::Result<Vec<fs::DirEntry>>>()?;
 
-    let filenames: Vec<_> = dir_entries
+    let filenames = dir_entries
         .iter()
-        .map(|d| d.file_name().into_string().unwrap())
-        .collect();
+        .map(|d| d.file_name().into_string().unwrap());
 
-    // let elections: Vec<_> = filenames.iter().map(|s| get_election(s)).collect();
-    let elections: Vec<_> = filenames.iter().map(get_election).collect();
+    let elections = filenames
+        .map(|s| get_election(&s))
+        .collect::<Result<Vec<_>>>()?;
 
-    Ok(json!({"elections": "bar"}))
+    Ok(json!({ "elections": elections }))
 }
 
 #[derive(Serialize, Deserialize)]
