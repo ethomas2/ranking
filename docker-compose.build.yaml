@@ -1,3 +1,4 @@
+# docker config to build images. Used locally
 version: '3.7'
 
 services:

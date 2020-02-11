@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# This script is intended to run locally. The t2.micro instance that this app
+# runs on doesn't have enough memory to build these docker images. I think it's
+# the webpack image that makes it crap out
+
 set -euxo pipefail
 
 echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
