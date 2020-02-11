@@ -31,6 +31,9 @@ type IterationResult =
       newCandidates: CandidateName[];
       highlightIndicies: [number, number][];
       eliminatedRows: number[];
+    }
+  | {
+      type: 'INVALID DATA';
     };
 
 export function iteration(
@@ -55,7 +58,10 @@ export function iteration(
   // TODO: this would probably be simpler if you don't pass in the candidates
   // array. Just return the index of the winner/winner(s)
 
-  const numVoters = data[0].length; // TODO: what if data is []
+  if (data.length === 0) {
+    return {type: 'INVALID DATA'};
+  }
+  const numVoters = data[0].length;
   const ncandidates = candidates.length;
   const majority = Math.floor(numVoters / 2) + 1;
 

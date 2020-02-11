@@ -120,7 +120,12 @@ const Main: React.FC<MainProps> = props => {
   );
 
   useEffect(() => {
-    if (tableBodyData === null || tableLeftColData === null) {
+    if (
+      tableBodyData === null ||
+      tableLeftColData === null ||
+      tableBodyData.length === 0 ||
+      tableLeftColData.length === 0
+    ) {
       // data uninitialized
       return;
     }
@@ -168,6 +173,8 @@ const Main: React.FC<MainProps> = props => {
           eliminatedRows: [],
         });
         winners = result.winners;
+        break;
+      } else if (result.type === 'INVALID DATA') {
         break;
       } else {
         assertNever = result;
@@ -277,6 +284,9 @@ const Main: React.FC<MainProps> = props => {
 
   const validate = (): ValidationState => {
     // each row must have exactly numbers 1 - n where n is length of table
+    if (tableBodyData.length === 0) {
+      return null;
+    }
 
     const tableTranspose = _.unzip(tableBodyData);
     const ncols = tableHeaderData.length;
