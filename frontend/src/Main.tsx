@@ -338,7 +338,7 @@ const Main: React.FC<MainProps> = props => {
         <>
           <div> Winner(s): </div>
           {electionWinners.map(winner => (
-            <div>{winner}</div>
+            <div key={`winner-${winner}`}>{winner}</div>
           ))}
         </>
       )}
