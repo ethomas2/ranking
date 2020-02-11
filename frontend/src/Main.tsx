@@ -18,9 +18,10 @@ import _ from 'lodash';
 
 type MainProps = {
   title: string;
+  setElectionWinners: (winners: string[] | null) => void;
 };
 const Main: React.FC<MainProps> = props => {
-  const {title} = props;
+  const {title, setElectionWinners} = props;
 
   const {id} = useParams();
 
@@ -40,7 +41,6 @@ const Main: React.FC<MainProps> = props => {
     IterationResult[] | null
   >(null);
 
-  const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
   type LoadState =
     | {type: 'success'}
     | {type: 'pending'}
@@ -126,6 +126,8 @@ const Main: React.FC<MainProps> = props => {
       tableBodyData.length === 0 ||
       tableLeftColData.length === 0
     ) {
+      setIterationResults(null);
+      setElectionWinners(null);
       // data uninitialized
       return;
     }
@@ -306,18 +308,6 @@ const Main: React.FC<MainProps> = props => {
   const isSaving = isPending || updateInFlight;
   return (
     <>
-      <div className="Main__winner-row">
-        {electionWinners && (
-          <>
-            <h4> Winner(s): </h4>
-            <div>
-              {electionWinners.map(winner => (
-                <div key={`winner-${winner}`}>{winner}</div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
       <div className="Main__saving-container">
         {isSaving ? (
           'Saving ...'

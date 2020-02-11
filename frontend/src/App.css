@@ -21,8 +21,11 @@
 }
 
 .App__title-container {
+  /* I think the div that has this class applied also has App__center-column
+   * applied. They might fight over css */
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 5px;
   border-bottom: 1px solid #666666;
   cursor: pointer;
@@ -39,10 +42,14 @@
   opacity: 0;
 }
 
-.Main__winner-row {
+.App__winner-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.App__winner-content div {
+  margin-bottom: 10px;
 }
 
 @keyframes hideAnimation {

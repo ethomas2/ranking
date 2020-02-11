@@ -19,6 +19,10 @@ const App: React.FC = () => {
   ) : (
     title
   );
+
+  const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
+  // const electionWinners = ['foo', 'bar'];
+
   return (
     <Router>
       <div className="App">
@@ -41,10 +45,26 @@ const App: React.FC = () => {
           </div>
 
           <div className="App__center-column">
-            <Route path="/election/:id" render={() => <Main title={title} />} />
+            <Route
+              path="/election/:id"
+              render={() => (
+                <Main setElectionWinners={setElectionWinners} title={title} />
+              )}
+            />
           </div>
 
-          <div className="App__gutter" />
+          <div className="App__gutter App__winner-content">
+            <h4> Winner(s): </h4>
+            {electionWinners && (
+              <>
+                <div>
+                  {electionWinners.map(winner => (
+                    <div key={`winner-${winner}`}>{winner}</div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </Router>
