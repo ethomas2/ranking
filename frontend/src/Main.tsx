@@ -306,6 +306,18 @@ const Main: React.FC<MainProps> = props => {
   const isSaving = isPending || updateInFlight;
   return (
     <>
+      <div className="Main__winner-row">
+        {electionWinners && (
+          <>
+            <h4> Winner(s): </h4>
+            <div>
+              {electionWinners.map(winner => (
+                <div key={`winner-${winner}`}>{winner}</div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
       <div className="Main__saving-container">
         {isSaving ? (
           'Saving ...'
@@ -334,14 +346,6 @@ const Main: React.FC<MainProps> = props => {
             eliminatedRows={roundResult.eliminatedRows}
           />
         ))}
-      {electionWinners && (
-        <>
-          <div> Winner(s): </div>
-          {electionWinners.map(winner => (
-            <div key={`winner-${winner}`}>{winner}</div>
-          ))}
-        </>
-      )}
     </>
   );
 };

@@ -14,6 +14,9 @@
 }
 
 .App__center-column {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
   flex: 2;
 }
 
@@ -34,6 +37,12 @@
   animation-name: hideAnimation;
   animation-duration: 2s;
   opacity: 0;
+}
+
+.Main__winner-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 @keyframes hideAnimation {
