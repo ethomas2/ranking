@@ -147,7 +147,9 @@ export function iteration(
       const highlightIndicies = crossProduct(
         _.range(ncandidates),
         _.range(numVoters),
-      ).filter(([rowIdx, colIdx]) => data[rowIdx][colIdx] === n);
+      ).filter(([rowIdx, colIdx]) => {
+        return data[rowIdx][colIdx] === n;
+      });
       return {
         type: 'ELIMINATED',
         newCandidates,

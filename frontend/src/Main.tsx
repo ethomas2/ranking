@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useReducer} from 'react';
 import {useParams} from 'react-router-dom';
 import {
   removeRow,
@@ -16,6 +16,44 @@ import './App.css';
 import {ElectionResponseType} from './types';
 import _ from 'lodash';
 
+type State = {
+  inFlight: boolean;
+  tableBodyData: string[][] | null;
+  tableHeaderData: string[] | null;
+  tableLeftColData: string[] | null;
+  version: string | null;
+};
+
+type Action =
+  | {type: 'UPDATE_IN_FLIGHT'; inFlight: boolean}
+  | {type: 'UPDATE_TABLE_BODY_DATA'; tableBodyData: string[][] | null}
+  | {type: 'UPDATE_TABLE_HEADER_DATA'; tableHeaderData: string[] | null}
+  | {type: 'UPDATE_TABLE_LEFT_COL_DATA'; tableLeftColData: string[] | null}
+  | {type: 'UPDATE_VERSION'; version: string | null}
+  | {type: 'UPDATE_ALL'; state: Partial<State>};
+
+const reducer = (prevState: State, action: Action): State => {
+  let assertNever: never;
+  switch (action.type) {
+    case 'UPDATE_IN_FLIGHT':
+      return {...prevState, inFlight: action.inFlight};
+    case 'UPDATE_TABLE_BODY_DATA':
+      return {...prevState, tableBodyData: action.tableBodyData};
+    case 'UPDATE_TABLE_HEADER_DATA':
+      return {...prevState, tableHeaderData: action.tableHeaderData};
+    case 'UPDATE_TABLE_LEFT_COL_DATA':
+      return {...prevState, tableLeftColData: action.tableLeftColData};
+    case 'UPDATE_VERSION':
+      return {...prevState, version: action.version};
+    case 'UPDATE_ALL':
+      return {...prevState, ...action.state};
+    default:
+      assertNever = action;
+      // TODO: this shouldn't be necessary. Typescript should catch this for you
+      return prevState;
+  }
+};
+
 type MainProps = {
   title: string;
   setElectionWinners: (winners: string[] | null) => void;
@@ -25,11 +63,25 @@ const Main: React.FC<MainProps> = props => {
 
   const {id} = useParams();
 
-  const [updateInFlight, setUpdateInFlight] = useState(false);
-  const [tableBodyData, setTableData] = useState<string[][] | null>(null);
-  const [tableHeaderData, setTableHeader] = useState<string[] | null>(null);
-  const [tableLeftColData, setTableLeftCol] = useState<string[] | null>(null);
-  const [version, setVersion] = useState<string | null>(null);
+  const [state, dispatch] = useReducer<React.Reducer<State, Action>>(
+    reducer,
+    {
+      tableBodyData: null,
+      tableHeaderData: null,
+      tableLeftColData: null,
+      version: null,
+      inFlight: false,
+    },
+    undefined,
+  );
+
+  const {
+    tableBodyData,
+    tableHeaderData,
+    tableLeftColData,
+    version,
+    inFlight,
+  } = state;
 
   type IterationResult = {
     data: number[][];
@@ -50,14 +102,40 @@ const Main: React.FC<MainProps> = props => {
   type ValidationState = string | null;
   const [validationState, setValidationState] = useState<ValidationState>(null);
 
+  const setTableData = (tableBodyData: string[][] | null) =>
+    dispatch({type: 'UPDATE_TABLE_BODY_DATA', tableBodyData});
+  const setTableHeader = (tableHeaderData: string[] | null) =>
+    dispatch({type: 'UPDATE_TABLE_HEADER_DATA', tableHeaderData});
+  const setTableLeftCol = (tableLeftColData: string[] | null) =>
+    dispatch({type: 'UPDATE_TABLE_LEFT_COL_DATA', tableLeftColData});
+  const setVersion = (version: string | null) =>
+    dispatch({type: 'UPDATE_VERSION', version});
+  const setUpdateInFlight = (inFlight: boolean) =>
+    dispatch({type: 'UPDATE_IN_FLIGHT', inFlight});
+  const setState = (state: Partial<State>) =>
+    dispatch({type: 'UPDATE_ALL', state});
+
   useEffect(() => {
     req<ElectionResponseType>(`/election/${id}`)
       .then(data => {
-        const {body, header, leftCol, version} = data;
-        setTableData(body);
-        setTableHeader(header);
-        setTableLeftCol(leftCol);
-        setVersion(version);
+        const {
+          body: tableBodyData,
+          header: tableHeaderData,
+          leftCol: tableLeftColData,
+          version,
+        } = data;
+        // problem is when id changes the foloowing 5 state updates don't
+        // happen atomically, so you end up with tableData that isn't the right
+        // shape for tableheader and tableleftcol
+        // options:
+        //  disable updating while request is in flight
+        //  make this stuff atomic by putting it all on the same piece of state
+        setState({
+          tableBodyData,
+          tableHeaderData,
+          tableLeftColData,
+          version,
+        });
         setLoadState({type: 'success'});
       })
       .catch((error: BackendHttpError) => {
@@ -305,7 +383,7 @@ const Main: React.FC<MainProps> = props => {
     return null;
   };
 
-  const isSaving = isPending || updateInFlight;
+  const isSaving = isPending || inFlight;
   return (
     <>
       <div className="Main__saving-container">
