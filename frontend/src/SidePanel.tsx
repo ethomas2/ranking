@@ -6,12 +6,18 @@ import {ElectionResponseType} from './types';
 import CloseIcon from './CloseIcon';
 import _ from 'lodash';
 
-const SidePanel: React.FC = () => {
+export type SidePanelProps = {
+  title: string;
+};
+
+const SidePanel: React.FC<SidePanelProps> = props => {
   type Card = {
     id: string;
     title: string;
     date: Date;
   };
+
+  const {title: mainTitle} = props;
 
   const [cards, setCards] = useState<Card[]>([]);
   const [hoverState, _setHoverState] = useState<{[id: string]: boolean}>({});
@@ -82,9 +88,10 @@ const SidePanel: React.FC = () => {
     <div>
       <input type="button" value="Create New" onClick={createNew} />
       {cards.map(({id, title, date}, idx) => {
+        const isCurrentlySelectedCard = urlId === id;
         const className =
           'SidePanel__card' +
-          (urlId === id ? ' SidePanel__card--selected' : '');
+          (isCurrentlySelectedCard ? ' SidePanel__card--selected' : '');
         return (
           <div
             key={`side-panel-card-${idx}`}
@@ -105,7 +112,9 @@ const SidePanel: React.FC = () => {
               )}
             </div>
             <div className="SidePanel__card-middle">
-              <div>{title || 'No Title'}</div>
+              <div>
+                {(isCurrentlySelectedCard && mainTitle) || title || 'No Title'}
+              </div>
               <div>{date.toLocaleDateString()}</div>
             </div>
             <div className="SidePanel__card-vert-gutter" />

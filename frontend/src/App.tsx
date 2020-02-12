@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import Main from './Main';
-import SidePanel from './SidePanel';
+import SidePanel, {SidePanelProps} from './SidePanel';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 
 const App: React.FC = () => {
@@ -21,7 +21,6 @@ const App: React.FC = () => {
   );
 
   const [electionWinners, setElectionWinners] = useState<string[] | null>(null);
-  // const electionWinners = ['foo', 'bar'];
 
   return (
     <Router>
@@ -40,8 +39,19 @@ const App: React.FC = () => {
           <div className="App__gutter">
             {/* TODO: Figure out how to do path=* here and still be able to
             access useParams in SidePanel */}
-            <Route path="/election/:id" component={SidePanel} />
-            <Route exact path="/" component={SidePanel} />
+            <Route
+              path="/election/:id"
+              component={(props: SidePanelProps) => (
+                <SidePanel {...props} title={title} />
+              )}
+            />
+            <Route
+              exact
+              path="/"
+              component={(props: SidePanelProps) => (
+                <SidePanel {...props} title={title} />
+              )}
+            />
           </div>
 
           <div className="App__center-column">
