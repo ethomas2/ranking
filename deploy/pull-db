@@ -1,3 +1,4 @@
+#!/bin/bash
 ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE """
 docker cp \$(docker ps | grep backend | awk '{print \$1}'):/var/lib/db/ -
 """ | tar -f - -x
