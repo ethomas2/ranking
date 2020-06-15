@@ -1,3 +1,57 @@
-#!/bin/bash
-set -euxo pipefail
-ssh -i $DEPLOY_KEY_PATH $DEPLOY_USER@$DEPLOY_INSTANCE
+#!/usr/bin/env python
+
+import os
+import sys
+import subprocess
+import json
+
+
+DEPLOY_KEY_PATH = os.getenv('DEPLOY_KEY_PATH')
+DEPLOY_USER = os.getenv('DEPLOY_USER')
+
+missing_variables = [
+    name
+    for name, val in [
+        ('DEPLOY_KEY_PATH', DEPLOY_KEY_PATH),
+        ('DEPLOY_USER', DEPLOY_USER),
+    ]
+    if val is None
+]
+
+if len(missing_variables) > 0:
+    for name in missing_variables:
+        print(f'\033[31mmissing env variable {name}\033[m')
+    sys.exit(1)
+
+
+def get_instances():
+    proc = subprocess.run(
+        ['aws', 'ec2', 'describe-instances'], capture_output=True)
+    if proc.returncode != 0:
+        print(f'\033[31m{proc.stdout.decode()}\n{proc.stderr.decode()}\033[m')
+        sys.exit(1)
+
+    data = json.loads(proc.stdout)
+
+    instances = [
+        instance.get('PublicDnsName')
+        for reservation in data.get('Reservations', [])
+        for instance in reservation.get('Instances', [])
+        if any(tag.get('Value') == 'ranking instance'
+               for tag in instance.get('Tags', [])
+               if tag.get('Key') == 'Name')
+    ]
+    return instances
+
+
+instances = get_instances()
+if len(instances) == 0:
+    print(f'\033[31mCould not find an instance with "ranking" in Tags\033[m')
+    sys.exit(1)
+elif len(instances) > 1:
+    print(f'\033[31mToo many instances found ({len(instances)})\033[m')
+instance = instances[0]
+
+print(f'\033[32m{instance}\033[m')
+subprocess.run(
+    ['ssh', '-i', DEPLOY_KEY_PATH, f'{DEPLOY_USER}@{instance}', *sys.argv[1:]])
